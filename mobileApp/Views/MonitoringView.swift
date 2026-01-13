@@ -9,12 +9,13 @@ import SwiftUI
 
 struct MonitoringView: View {
     @ObservedObject var viewModel: ADASViewModel
+    @EnvironmentObject var theme: ThemeManager
     @State private var showLogs = true
     
     var body: some View {
         ZStack {
-            // Background matching website
-            Color(red: 0.05, green: 0.08, blue: 0.15)
+            // Background using theme
+            theme.backgroundColor
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
@@ -45,13 +46,13 @@ struct MonitoringView: View {
         HStack {
             Text("ADAS SYSTEM")
                 .font(.system(size: 16, weight: .bold, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(theme.primaryText)
             
             Spacer()
             
             Text("v3.0-production")
                 .font(.system(size: 12, design: .monospaced))
-                .foregroundColor(.gray)
+                .foregroundColor(theme.secondaryText)
             
             // Theme toggle (placeholder)
             Button(action: {}) {
@@ -88,7 +89,7 @@ struct MonitoringView: View {
             }
         }
         .padding()
-        .background(Color(red: 0.03, green: 0.05, blue: 0.1))
+        .background(theme.cardBackground)
     }
     
     private var cameraFeedSection: some View {
@@ -143,7 +144,7 @@ struct MonitoringView: View {
                             HStack {
                                 HStack(spacing: 6) {
                                     Circle()
-                                        .fill(Color.red)
+                                        .fill(Color.white)
                                         .frame(width: 8, height: 8)
                                     
                                     Text("LIVE")
@@ -152,8 +153,9 @@ struct MonitoringView: View {
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
-                                .background(Color.black.opacity(0.7))
+                                .background(Color.red)
                                 .cornerRadius(4)
+                                .shadow(color: Color.red.opacity(0.5), radius: 8, x: 0, y: 0)
                                 .padding()
                                 
                                 Spacer()
@@ -186,12 +188,12 @@ struct MonitoringView: View {
             HStack {
                 HStack(spacing: 8) {
                     Image(systemName: "terminal.fill")
-                        .foregroundColor(Color(red: 0.2, green: 0.8, blue: 0.4))
+                        .foregroundColor(Color.green)
                         .font(.system(size: 14))
                     
                     Text("SẢN PHẨM CỦA ADAS TEAM")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(theme.primaryText)
                 }
                 
                 Spacer()
@@ -200,7 +202,7 @@ struct MonitoringView: View {
                     showLogs.toggle()
                 }) {
                     Image(systemName: showLogs ? "chevron.up" : "chevron.down")
-                        .foregroundColor(.gray)
+                        .foregroundColor(theme.secondaryText)
                         .font(.system(size: 12))
                 }
             }
@@ -211,7 +213,7 @@ struct MonitoringView: View {
                     HStack(alignment: .top, spacing: 8) {
                         Text(">")
                             .font(.system(size: 12, design: .monospaced))
-                            .foregroundColor(Color(red: 0.2, green: 0.8, blue: 0.4))
+                            .foregroundColor(Color.green)
                         
                         Text(log.formattedMessage)
                             .font(.system(size: 11, design: .monospaced))
@@ -222,35 +224,39 @@ struct MonitoringView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.black.opacity(0.5))
-            .cornerRadius(8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(theme.isDarkMode ? Color.black.opacity(0.5) : Color.gray.opacity(0.15))
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(red: 0.2, green: 0.8, blue: 0.4).opacity(0.3), lineWidth: 1)
+                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
             )
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.03))
+                .fill(theme.cardBackground)
         )
     }
     
     private func logColor(for level: SystemLog.LogLevel) -> Color {
         switch level {
         case .info:
-            return Color.blue.opacity(0.8)
+            return Color.blue
         case .warn:
-            return Color.yellow.opacity(0.9)
+            return Color.orange
         case .error:
-            return Color.red.opacity(0.9)
+            return Color.red
         case .success:
-            return Color(red: 0.2, green: 0.8, blue: 0.4)
+            return Color.green
         }
     }
 }
 
 struct LaneDetectionOverlay: View {
+    @EnvironmentObject var theme: ThemeManager
+    
     var body: some View {
         GeometryReader { geometry in
             Path { path in
@@ -272,7 +278,7 @@ struct LaneDetectionOverlay: View {
                 path.addLine(to: bottomLeft)
                 path.closeSubpath()
             }
-            .fill(Color(red: 0.2, green: 0.8, blue: 0.4).opacity(0.2))
+            .fill(Color.green.opacity(0.2))
             
             // Lane borders
             Path { path in
@@ -290,13 +296,14 @@ struct LaneDetectionOverlay: View {
                 path.move(to: CGPoint(x: (width + topWidth) / 2, y: height * 0.3))
                 path.addLine(to: CGPoint(x: (width + bottomWidth) / 2, y: height))
             }
-            .stroke(Color(red: 0.2, green: 0.8, blue: 0.4), lineWidth: 3)
+            .stroke(Color.green, lineWidth: 3)
         }
     }
 }
 
 struct DetectionBox: View {
     let object: DetectedObject
+    @EnvironmentObject var theme: ThemeManager
     
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -314,7 +321,7 @@ struct DetectionBox: View {
                     .font(.system(size: 9, design: .monospaced))
             }
             .padding(4)
-            .background(boxColor.opacity(0.9))
+            .background(boxColor)
             .foregroundColor(.white)
             .cornerRadius(4)
             .position(x: object.frame.minX + 40, y: object.frame.minY - 25)
@@ -324,19 +331,20 @@ struct DetectionBox: View {
     private var boxColor: Color {
         switch object.type {
         case "car":
-            return Color(red: 0.4, green: 0.6, blue: 1.0)
+            return Color.blue
         case "motorbike":
-            return Color(red: 1.0, green: 0.6, blue: 0.2)
+            return Color.orange
         case "person":
-            return Color(red: 0.9, green: 0.4, blue: 0.9)
+            return Color.purple
         default:
-            return .white
+            return Color.cyan
         }
     }
 }
 
 struct CollisionWarningDisplay: View {
     let status: VehicleStatus
+    @EnvironmentObject var theme: ThemeManager
     
     var body: some View {
         VStack(alignment: .trailing, spacing: 8) {
@@ -372,26 +380,28 @@ struct CollisionWarningDisplay: View {
 struct MetricCard: View {
     let label: String
     let value: String
+    @EnvironmentObject var theme: ThemeManager
     
     var body: some View {
         VStack(spacing: 4) {
             Text(label)
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundColor(.gray)
+                .foregroundColor(theme.secondaryText)
             
             Text(value)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(theme.primaryText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-        .background(Color.white.opacity(0.05))
+        .background(theme.cardBackground.opacity(0.5))
         .cornerRadius(8)
     }
 }
 
 #Preview {
     MonitoringView(viewModel: ADASViewModel())
+        .environmentObject(ThemeManager())
 }

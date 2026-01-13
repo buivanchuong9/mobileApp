@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct VehicleStatus {
     var speed: Double // km/h
@@ -80,6 +81,15 @@ struct Alert: Identifiable {
             case .medium: return "yellow"
             case .high: return "orange"
             case .critical: return "red"
+            }
+        }
+        
+        var color: Color {
+            switch self {
+            case .low: return .green
+            case .medium: return .yellow
+            case .high: return .orange
+            case .critical: return .red
             }
         }
     }

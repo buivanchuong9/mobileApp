@@ -11,6 +11,7 @@ import AVKit
 
 struct DriverMonitoringView: View {
     @ObservedObject var viewModel: ADASViewModel
+    @EnvironmentObject var theme: ThemeManager
     @State private var selectedVideo: PhotosPickerItem?
     @State private var videoURL: URL?
     @State private var isAnalyzing = false
@@ -20,8 +21,8 @@ struct DriverMonitoringView: View {
     
     var body: some View {
         ZStack {
-            // Background matching website
-            Color(red: 0.05, green: 0.08, blue: 0.15)
+            // Background using theme
+            theme.backgroundColor
                 .ignoresSafeArea()
             
             ScrollView {
@@ -66,11 +67,11 @@ struct DriverMonitoringView: View {
             
             Text("Upload Video Giám Sát")
                 .font(.system(size: 28, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(theme.primaryText)
             
             Text("Hệ thống AI sẽ phân tích hành vi tài xế, phát hiện buồn ngủ, mất tập trung và đánh giá mức độ an toàn.")
                 .font(.system(size: 14))
-                .foregroundColor(.gray)
+                .foregroundColor(theme.secondaryText)
                 .lineSpacing(4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -87,11 +88,11 @@ struct DriverMonitoringView: View {
                     VStack(spacing: 8) {
                         Text(videoURL == nil ? "Chọn Video Tài Xế" : "Đổi Video")
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(theme.primaryText)
                         
                         Text("Hỗ trợ MP4, MOV, AVI (tối đa 500MB)")
                             .font(.system(size: 12))
-                            .foregroundColor(.gray)
+                            .foregroundColor(theme.secondaryText)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -151,7 +152,7 @@ struct DriverMonitoringView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Video Preview")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(theme.primaryText)
             
             VideoPlayer(player: AVPlayer(url: url))
                 .frame(height: 200)
@@ -171,7 +172,7 @@ struct DriverMonitoringView: View {
                 
                 Text("Đang phân tích hành vi tài xế...")
                     .font(.system(size: 14))
-                    .foregroundColor(.white)
+                    .foregroundColor(theme.primaryText)
             }
             
             ProgressView(value: analysisProgress)
@@ -196,7 +197,7 @@ struct DriverMonitoringView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Kết Quả Giám Sát")
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(theme.primaryText)
             
             // Status Overview
             HStack(spacing: 12) {
@@ -266,7 +267,7 @@ struct DriverMonitoringView: View {
                 HStack {
                     Text("Điểm Tập Trung")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(theme.primaryText)
                     
                     Spacer()
                     
@@ -296,7 +297,7 @@ struct DriverMonitoringView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Dòng Thời Gian Sự Kiện")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(theme.primaryText)
                 
                 ForEach(results.events) { event in
                     DriverEventRow(event: event)
@@ -438,7 +439,7 @@ struct MonitoringMetricCard: View {
             
             Text(value)
                 .font(.system(size: 20, weight: .bold, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(Color.white)
             
             Text(label)
                 .font(.system(size: 11))
@@ -479,7 +480,7 @@ struct DriverEventRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(event.type)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(Color.white)
                 
                 HStack(spacing: 8) {
                     Text("⏱ \(event.timestamp)")
@@ -511,4 +512,5 @@ struct DriverEventRow: View {
 
 #Preview {
     DriverMonitoringView(viewModel: ADASViewModel())
+        .environmentObject(ThemeManager())
 }

@@ -32,15 +32,15 @@ struct ContentView: View {
                         .ignoresSafeArea()
                     
                     TabView(selection: $selectedTab) {
-                        DashboardView(viewModel: viewModel)
+                        UltraPremiumDashboard(viewModel: viewModel)
                             .tabItem {
-                                Label("Dashboard", systemImage: "gauge.with.dots.needle.67percent")
+                                Label("Trang Chủ", systemImage: "gauge.with.dots.needle.67percent")
                             }
                             .tag(0)
                         
                         MonitoringView(viewModel: viewModel)
                             .tabItem {
-                                Label("Monitor", systemImage: "video.fill")
+                                Label("Camera Live", systemImage: "video.fill")
                             }
                             .tag(1)
                         
@@ -58,7 +58,7 @@ struct ContentView: View {
                         
                         SettingsView(viewModel: viewModel)
                             .tabItem {
-                                Label("Settings", systemImage: "gearshape.fill")
+                                Label("Cài Đặt", systemImage: "gearshape.fill")
                             }
                             .tag(4)
                     }
