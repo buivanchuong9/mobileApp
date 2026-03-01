@@ -6,6 +6,16 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6931FD932F1CB2A700040DC6 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD922F1CB2A700040DC6 /* Auth */; };
+		6931FD952F1CB2A700040DC6 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD942F1CB2A700040DC6 /* Functions */; };
+		6931FD972F1CB2A700040DC6 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD962F1CB2A700040DC6 /* PostgREST */; };
+		6931FD992F1CB2A700040DC6 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD982F1CB2A700040DC6 /* Realtime */; };
+		6931FD9B2F1CB2A700040DC6 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD9A2F1CB2A700040DC6 /* Storage */; };
+		6931FD9D2F1CB2A700040DC6 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD9C2F1CB2A700040DC6 /* Supabase */; };
+		69D6B4572F324E5900E550DD /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 69D6B4562F324E5900E550DD /* GoogleMobileAds */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		691AF6CC2F15293200A943A4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +39,22 @@
 		691AF6D52F15293200A943A4 /* mobileAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = mobileAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6931FDA12F1CD0FE00040DC6 /* Exceptions for "mobileApp" folder in "mobileApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 691AF6BA2F15293000A943A4 /* mobileApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		691AF6BD2F15293000A943A4 /* mobileApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6931FDA12F1CD0FE00040DC6 /* Exceptions for "mobileApp" folder in "mobileApp" target */,
+			);
 			path = mobileApp;
 			sourceTree = "<group>";
 		};
@@ -52,6 +75,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6931FD972F1CB2A700040DC6 /* PostgREST in Frameworks */,
+				6931FD952F1CB2A700040DC6 /* Functions in Frameworks */,
+				6931FD9D2F1CB2A700040DC6 /* Supabase in Frameworks */,
+				6931FD932F1CB2A700040DC6 /* Auth in Frameworks */,
+				6931FD9B2F1CB2A700040DC6 /* Storage in Frameworks */,
+				6931FD992F1CB2A700040DC6 /* Realtime in Frameworks */,
+				69D6B4572F324E5900E550DD /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +108,7 @@
 				691AF6BD2F15293000A943A4 /* mobileApp */,
 				691AF6CE2F15293200A943A4 /* mobileAppTests */,
 				691AF6D82F15293200A943A4 /* mobileAppUITests */,
+				6931FD912F1CB29D00040DC6 /* Frameworks */,
 				691AF6BC2F15293000A943A4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +121,13 @@
 				691AF6D52F15293200A943A4 /* mobileAppUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6931FD912F1CB29D00040DC6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +150,13 @@
 			);
 			name = mobileApp;
 			packageProductDependencies = (
+				6931FD922F1CB2A700040DC6 /* Auth */,
+				6931FD942F1CB2A700040DC6 /* Functions */,
+				6931FD962F1CB2A700040DC6 /* PostgREST */,
+				6931FD982F1CB2A700040DC6 /* Realtime */,
+				6931FD9A2F1CB2A700040DC6 /* Storage */,
+				6931FD9C2F1CB2A700040DC6 /* Supabase */,
+				69D6B4562F324E5900E550DD /* GoogleMobileAds */,
 			);
 			productName = mobileApp;
 			productReference = 691AF6BB2F15293000A943A4 /* mobileApp.app */;
@@ -195,6 +240,10 @@
 			);
 			mainGroup = 691AF6B22F15293000A943A4;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				69D6B4552F324E5900E550DD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 691AF6BC2F15293000A943A4 /* Products */;
 			projectDirPath = "";
@@ -399,7 +448,14 @@
 				DEVELOPMENT_TEAM = 3B74Q43KXX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = mobileApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "ADAS Mobile";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Cho phép quay video hành trình trực tiếp.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Cho phép đăng nhập nhanh và bảo mật bằng Face ID.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cho phép ghi âm khi quay video.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Cho phép chọn video hành trình từ thư viện để phân tích AI.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Dữ liệu này giúp hiển thị quảng cáo phù hợp và hỗ trợ duy trì ứng dụng miễn phí.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -429,7 +485,14 @@
 				DEVELOPMENT_TEAM = 3B74Q43KXX;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = mobileApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "ADAS Mobile";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Cho phép quay video hành trình trực tiếp.";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Cho phép đăng nhập nhanh và bảo mật bằng Face ID.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Cho phép ghi âm khi quay video.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Cho phép chọn video hành trình từ thư viện để phân tích AI.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Dữ liệu này giúp hiển thị quảng cáo phù hợp và hỗ trợ duy trì ứng dụng miễn phí.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -560,6 +623,63 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+		69D6B4552F324E5900E550DD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.14.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6931FD922F1CB2A700040DC6 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		6931FD942F1CB2A700040DC6 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		6931FD962F1CB2A700040DC6 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		6931FD982F1CB2A700040DC6 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		6931FD9A2F1CB2A700040DC6 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		6931FD9C2F1CB2A700040DC6 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		69D6B4562F324E5900E550DD /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 69D6B4552F324E5900E550DD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 691AF6B32F15293000A943A4 /* Project object */;
 }

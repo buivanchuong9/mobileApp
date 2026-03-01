@@ -76,16 +76,12 @@ struct MonitoringView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 1.0, green: 0.6, blue: 0.2),
-                                Color(red: 1.0, green: 0.5, blue: 0.1)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                        viewModel.isMonitoring
+                            ? LinearGradient(colors: [Color.red, Color.red.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
+                            : LinearGradient(colors: [theme.accentOrange, theme.accentOrange.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
                     )
-                    .cornerRadius(8)
+                    .cornerRadius(10)
+                    .shadow(color: (viewModel.isMonitoring ? Color.red : theme.accentOrange).opacity(0.3), radius: 8, x: 0, y: 3)
             }
         }
         .padding()
@@ -111,7 +107,7 @@ struct MonitoringView: View {
                         path.move(to: CGPoint(x: 0, y: height * 0.4))
                         path.addLine(to: CGPoint(x: width, y: height * 0.4))
                     }
-                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
                     
                     // Lane detection overlay (green safe zone)
                     if viewModel.features.first(where: { $0.type == .laneDetection })?.isEnabled == true {
@@ -170,7 +166,7 @@ struct MonitoringView: View {
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                .stroke(theme.cardBorder, lineWidth: 0.5)
         )
     }
     
@@ -225,18 +221,19 @@ struct MonitoringView: View {
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(theme.isDarkMode ? Color.black.opacity(0.5) : Color.gray.opacity(0.15))
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(theme.terminalBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.green.opacity(0.15), lineWidth: 0.5)
             )
         }
-        .padding()
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 8, x: 0, y: 3)
         )
     }
     
@@ -395,9 +392,12 @@ struct MetricCard: View {
                 .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(theme.cardBackground.opacity(0.5))
-        .cornerRadius(8)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(theme.elevatedBackground)
+        )
+        .cornerRadius(10)
     }
 }
 

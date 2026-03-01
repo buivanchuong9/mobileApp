@@ -100,29 +100,26 @@ struct SettingsView: View {
                         .foregroundColor(theme.secondaryText)
                         .font(.system(size: 14))
                 }
-                .padding()
+                .padding(16)
                 .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(theme.cardBackground)
-                            .shadow(color: theme.shadowColor, radius: 8, y: 4)
-                        
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke((theme.isDarkMode ? theme.accentPurple : theme.accentOrange).opacity(0.3), lineWidth: 1)
-                    }
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(theme.elevatedBackground)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke((theme.isDarkMode ? theme.accentPurple : theme.accentOrange).opacity(0.15), lineWidth: 0.5)
+                        )
                 )
             }
         }
         .padding()
         .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(theme.cardBackground)
-                    .shadow(color: theme.shadowColor, radius: 10, y: 5)
-                
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(theme.cardBorder, lineWidth: 1)
-            }
+            RoundedRectangle(cornerRadius: 20)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
+                )
         )
     }
     
@@ -133,20 +130,21 @@ struct SettingsView: View {
                 .foregroundColor(theme.primaryText)
             
             VStack(spacing: 12) {
-                ForEach(viewModel.features) { feature in
-                    FeatureToggleRow(feature: feature) {
-                        viewModel.toggleFeature(feature)
+                ForEach(viewModel.features.indices, id: \.self) { index in
+                    FeatureToggleRow(feature: viewModel.features[index]) {
+                        viewModel.toggleFeature(at: index)
                     }
                 }
             }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.03))
+            RoundedRectangle(cornerRadius: 20)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
                 )
         )
     }
@@ -233,17 +231,18 @@ struct SettingsView: View {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.02))
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(theme.elevatedBackground)
             )
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white.opacity(0.03))
+            RoundedRectangle(cornerRadius: 20)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
                 )
         )
     }
@@ -276,8 +275,8 @@ struct SettingsView: View {
                 .tint(Color(red: 0.2, green: 0.8, blue: 0.4))
                 .padding()
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(theme.cardBackground.opacity(0.5))
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(theme.elevatedBackground)
                 )
                 
                 // Clear Alerts Button
@@ -307,8 +306,8 @@ struct SettingsView: View {
                     }
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(theme.cardBackground.opacity(0.5))
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(theme.elevatedBackground)
                     )
                 }
                 
@@ -339,19 +338,20 @@ struct SettingsView: View {
                     }
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(theme.cardBackground.opacity(0.5))
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(theme.elevatedBackground)
                     )
                 }
             }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(theme.borderColor, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
                 )
         )
     }
@@ -391,17 +391,18 @@ struct SettingsView: View {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(theme.cardBackground.opacity(0.5))
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(theme.elevatedBackground)
             )
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(theme.borderColor, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
                 )
         )
     }
@@ -442,13 +443,13 @@ struct FeatureToggleRow: View {
                     onToggle()
                 }
         }
-        .padding()
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(theme.cardBackground.opacity(0.5))
+            RoundedRectangle(cornerRadius: 14)
+                .fill(theme.elevatedBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(feature.type.color.opacity(feature.isEnabled ? 0.3 : 0.1), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(feature.type.color.opacity(feature.isEnabled ? 0.15 : 0.0), lineWidth: 0.5)
                 )
         )
     }

@@ -547,13 +547,13 @@ struct PremiumDashboardView: View {
                 .foregroundColor(theme.primaryText)
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ForEach(viewModel.features) { feature in
-                    Premium3DFeatureCard(feature: feature) {
+                ForEach(viewModel.features.indices, id: \.self) { index in
+                    Premium3DFeatureCard(feature: viewModel.features[index]) {
                         let generator = UIImpactFeedbackGenerator(style: .light)
                         generator.impactOccurred()
                         
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                            viewModel.toggleFeature(feature)
+                            viewModel.toggleFeature(at: index)
                         }
                     }
                 }

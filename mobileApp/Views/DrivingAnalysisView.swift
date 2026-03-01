@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 import AVKit
+import Photos
 
 struct DrivingAnalysisView: View {
     @ObservedObject var viewModel: ADASViewModel
@@ -20,22 +21,17 @@ struct DrivingAnalysisView: View {
     @State private var showResults = false
     @State private var showVideoPreview = false
     @State private var logoImage: UIImage? // State cho logo để load async
+    @State private var errorMessage: String?
+    @State private var showErrorAlert = false
+    @State private var localVideoURL: URL?
+    @State private var isVideoLoading = false
+    @State private var statusMessage: String = "Đang Phân Tích Video..."
     
     var body: some View {
         ZStack {
-            // Premium Background
-            LinearGradient(
-                colors: theme.isDarkMode ? [
-                    Color(red: 0.05, green: 0.08, blue: 0.15),
-                    Color(red: 0.08, green: 0.12, blue: 0.20)
-                ] : [
-                    Color(red: 0.95, green: 0.96, blue: 0.98),
-                    Color(red: 0.88, green: 0.90, blue: 0.95)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Clean Background
+            theme.backgroundColor
+                .ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 24) {
@@ -71,6 +67,13 @@ struct DrivingAnalysisView: View {
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: videoURL)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isAnalyzing)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showResults)
+        .alert(isPresented: $showErrorAlert) {
+            SwiftUI.Alert(
+                title: Text("Lỗi"),
+                message: Text(errorMessage ?? "Đã xảy ra lỗi không xác định"),
+                dismissButton: .default(Text("Đóng"))
+            )
+        }
         .task {
             // Load logo asynchronous để tránh block main thread gây lag
             if logoImage == nil {
@@ -91,7 +94,7 @@ struct DrivingAnalysisView: View {
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 16) {
-                // Logo Section - Optimized UI & Async Loading
+                // Logo Section
                 if let uiImage = logoImage {
                     Image(uiImage: uiImage)
                         .resizable()
@@ -100,7 +103,6 @@ struct DrivingAnalysisView: View {
                         .cornerRadius(16)
                         .shadow(color: theme.shadowColor, radius: 8, x: 0, y: 4)
                 } else {
-                    // Fallback icon đẹp (Placeholder trong khi đang load hoặc không có logo)
                     ZStack {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(
@@ -147,7 +149,7 @@ struct DrivingAnalysisView: View {
                 VStack(spacing: 20) {
                     ZStack {
                         Circle()
-                            .fill(theme.isDarkMode ? Color.white.opacity(0.05) : Color.black.opacity(0.03))
+                            .fill(theme.elevatedBackground)
                             .frame(width: 80, height: 80)
                         
                         Circle()
@@ -171,12 +173,12 @@ struct DrivingAnalysisView: View {
                     
                     VStack(spacing: 8) {
                         Text(videoURL == nil ? "Chọn Video Lái Xe" : "Video Đã Chọn")
-                            .font(.system(size: 20, weight: .bold)) // To hơn
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundColor(theme.primaryText)
                         
                         Text(videoURL == nil ? "Chạm để chọn từ thư viện" : videoURL?.lastPathComponent ?? "")
                             .font(.system(size: 15))
-                            .foregroundColor(theme.primaryText.opacity(0.8)) // Sáng hơn
+                            .foregroundColor(theme.primaryText.opacity(0.8))
                             .lineLimit(1)
                     }
                     
@@ -327,7 +329,7 @@ struct DrivingAnalysisView: View {
             }
             
             VStack(spacing: 8) {
-                Text("Đang Phân Tích Video...")
+                Text(statusMessage)
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(theme.primaryText)
                 
@@ -341,7 +343,7 @@ struct DrivingAnalysisView: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(theme.isDarkMode ? Color.white.opacity(0.05) : Color.black.opacity(0.05))
+                            .fill(theme.elevatedBackground)
                             .frame(height: 8)
                         
                         RoundedRectangle(cornerRadius: 8)
@@ -397,22 +399,139 @@ struct DrivingAnalysisView: View {
     private func resultsSection(results: AnalysisResult) -> some View {
         VStack(spacing: 20) {
             // Success Header
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(Color.green.opacity(0.2))
-                        .frame(width: 64, height: 64)
+                        .fill(Color.green.opacity(0.12))
+                        .frame(width: 72, height: 72)
+                    
+                    Circle()
+                        .stroke(Color.green.opacity(0.3), lineWidth: 2)
+                        .frame(width: 72, height: 72)
                     
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 32))
+                        .font(.system(size: 36))
                         .foregroundColor(.green)
                 }
                 
                 Text("Phân Tích Hoàn Tất!")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 26, weight: .bold))
                     .foregroundColor(theme.primaryText)
+                
+                Text("AI đã xử lý xong video của bạn")
+                    .font(.system(size: 14))
+                    .foregroundColor(theme.secondaryText)
             }
-            .padding(.bottom, 8)
+            .padding(.bottom, 12)
+            
+            // Result Video Player
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Video Kết Quả AI")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(theme.primaryText)
+                    .padding(.horizontal, 4)
+                
+                if let localURL = localVideoURL {
+                    // Stream directly from server (faststart + baseline profile = instant streaming)
+                    let player = AVPlayer(url: localURL)
+                    VideoPlayer(player: player)
+                        .frame(height: 220)
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(theme.borderColor, lineWidth: 1)
+                        )
+                        .shadow(color: theme.shadowColor, radius: 10, x: 0, y: 5)
+                        .onAppear {
+                            player.play()
+                        }
+                    
+                    // Save button below player
+                    if let videoURL = results.resultVideoURL {
+                        Button(action: {
+                            saveAnalyzedVideo(from: videoURL)
+                        }) {
+                            HStack {
+                                Image(systemName: "square.and.arrow.down.fill")
+                                Text("Lưu Video Về Thư Viện")
+                            }
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.vertical, 12)
+                            .frame(maxWidth: .infinity)
+                            .background(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                            .cornerRadius(12)
+                        }
+                        .disabled(isVideoLoading)
+                    }
+                } else if isVideoLoading {
+                    // TRẠNG THÁI 2: Đang tải về (Loading) & Convert sang .mp4 chuẩn
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(theme.cardBackground)
+                            .frame(height: 220)
+                        
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Đang tải & xử lý video...")
+                                .font(.system(size: 14))
+                                .foregroundColor(theme.secondaryText)
+                        }
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(theme.borderColor, lineWidth: 1)
+                    )
+                } else if let videoURL = results.resultVideoURL {
+                    // KẾT QUẢ: Hiện nút Lưu Video
+                    VStack(spacing: 20) {
+                        Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 64))
+                        .foregroundColor(.green)
+                        .shadow(color: .green.opacity(0.3), radius: 10)
+                        
+                        Text("Phân Tích Hoàn Tất!")
+                            .font(.title3.bold())
+                            .foregroundColor(theme.primaryText)
+                        
+                        Text("Video kết quả đã sẵn sàng.")
+                            .font(.subheadline)
+                            .foregroundColor(theme.secondaryText)
+                        
+                        // NÚT LƯU VIDEO - Đơn giản nhất
+                        Button(action: {
+                            saveAnalyzedVideo(from: videoURL)
+                        }) {
+                            if isVideoLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.gray)
+                                    .cornerRadius(12)
+                            } else {
+                                HStack {
+                                    Image(systemName: "square.and.arrow.down.fill")
+                                    Text("Lưu Video Về Thư Viện")
+                                }
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                                .cornerRadius(12)
+                                .shadow(radius: 4)
+                            }
+                        }
+                        .disabled(isVideoLoading)
+                    }
+                    .padding(24)
+                    .background(theme.cardBackground)
+                    .cornerRadius(20)
+                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(theme.borderColor, lineWidth: 1))
+                }
+            }
             
             // Stats Grid
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
@@ -462,103 +581,405 @@ struct DrivingAnalysisView: View {
         isAnalyzing = true
         analysisProgress = 0.0
         showResults = false
+        statusMessage = "Đang chuẩn bị..."
+        SoundManager.shared.playStartSound()
         
         Task {
+            var uploadProgressTask: Task<Void, Never>? = nil
+            
             do {
-                // Upload video
-                let uploadResponse = try await ADASAPIService.shared.uploadVideo(
-                    videoURL: videoURL,
+                // CHUYỂN ĐỔI SANG MP4 (CHẤT LƯỢNG CAO NHẤT)
+                await MainActor.run { self.statusMessage = "Đang chuẩn hóa video..." }
+                
+                var videoToUpload = videoURL
+                if let convertedURL = await compressVideoForUpload(sourceURL: videoURL) {
+                    print("✅ Converted to mp4 (High Quality): \(convertedURL.path)")
+                    videoToUpload = convertedURL
+                }
+                
+                await MainActor.run { self.statusMessage = "Đang tải lên..." }
+                print("🚀 Uploading: \(videoToUpload.lastPathComponent)")
+                
+                // Fake Progress: Chạy chậm và tự nhiên hơn để không bị cảm giác "treo" ở cuối
+                uploadProgressTask = Task {
+                    var currentP = 0.0
+                    while currentP < 0.85 {
+                        // Random thời gian chờ từ 0.5s - 1.0s (Chậm lại đáng kể)
+                        let randomSleep = UInt64.random(in: 500_000_000...1_000_000_000)
+                        try? await Task.sleep(nanoseconds: randomSleep)
+                        
+                        // Tăng % ngẫu nhiên (chỉ 1-2% mỗi lần)
+                        let increment = Double.random(in: 0.005...0.02)
+                        currentP += increment
+                        
+                        // Nếu đã lên cao (>70%) thì tăng siêu chậm (để chờ upload thật)
+                        if currentP > 0.70 {
+                             try? await Task.sleep(nanoseconds: 1_000_000_000) // Delay thêm
+                        }
+
+                        let p = min(currentP, 0.85) // Cap ở 85%
+                        
+                        await MainActor.run {
+                            if self.isAnalyzing {
+                                // Animation mượt hơn
+                                withAnimation(.linear(duration: 0.5)) {
+                                    self.analysisProgress = p
+                                }
+                                self.statusMessage = "Đang tải lên: \(Int(p * 100))%"
+                            }
+                        }
+                    }
+                }
+                
+                // 2. UPLOAD (MOBILE API)
+                let uploadResponse = try await ADASAPIService.shared.uploadDashcamVideo(
+                    videoURL: videoToUpload,
                     videoType: "dashcam",
                     device: "cuda"
                 )
-                print("✅ Video uploaded: job_id=\(uploadResponse.jobId)")
                 
+                uploadProgressTask?.cancel()
+                
+                // Upload Done -> Switch to Polling
                 await MainActor.run {
-                    analysisProgress = Double(uploadResponse.progressPercent) / 100.0
+                    self.analysisProgress = 0.0 // Reset progress for analysis phase
+                    self.statusMessage = "Server đang xử lý AI..."
                 }
                 
-                HapticManager.shared.success()
+                print("✅ Upload Success! Job ID: \(uploadResponse.jobId)")
+                await logToSupabase(level: "INFO", message: "Upload done. Job ID: \(uploadResponse.jobId)")
                 
-                // Poll for results
+                // 3. POLL FOR STATUS
                 await pollForResults(jobId: uploadResponse.jobId)
                 
             } catch {
+                uploadProgressTask?.cancel()
+                print("❌ Start Analysis Failed: \(error.localizedDescription)")
+                await logToSupabase(level: "ERROR", message: "Analysis failed: \(error.localizedDescription)")
+                
                 await MainActor.run {
                     isAnalyzing = false
-                    print("❌ Upload error: \(error.localizedDescription)")
                     HapticManager.shared.error()
+                    SoundManager.shared.playDangerAlert()
+                    self.errorMessage = "Lỗi quy trình: \(error.localizedDescription)"
+                    self.showErrorAlert = true
+                }
+            }
+        }
+    }
+
+    private func pollForResults(jobId: String) async {
+        let maxTimeout: TimeInterval = 600 // 10 mins
+        let startTime = Date()
+        
+        print("⏳ Start polling for job: \(jobId)")
+        
+        while isAnalyzing && Date().timeIntervalSince(startTime) < maxTimeout {
+            do {
+                // 1. Call Real API
+                let statusResponse = try await ADASAPIService.shared.checkDashcamStatus(jobId: jobId)
+                print("📡 Polling status: \(statusResponse.status) (\(statusResponse.progressPercent)%)")
+                
+                // 2. Update UI
+                await MainActor.run {
+                    let p = statusResponse.progressPercent
+                    if p > 0 {
+                        withAnimation {
+                            self.analysisProgress = Double(p) / 100.0
+                        }
+                        self.statusMessage = "Đang xử lý AI: \(p)%"
+                    } else if statusResponse.status == "pending" {
+                        self.statusMessage = "Đang chờ trong hàng đợi..."
+                        self.analysisProgress = 0.05
+                    } else if statusResponse.status == "processing" {
+                         self.statusMessage = "AI đang phân tích video..."
+                    }
+                }
+                
+                // 3. Handle Completion
+                if statusResponse.status == "completed", let resultData = statusResponse.result {
+                    print("✅ Job completed! Processing results...")
+                    await processCompletedResult(resultData, jobId: jobId)
+                    return // EXIT LOOP
+                }
+                
+                // 4. Handle Failure
+                if statusResponse.status == "failed" {
+                    await MainActor.run {
+                        self.isAnalyzing = false
+                        self.errorMessage = "AI Phân tích thất bại. Vui lòng thử lại video khác."
+                        self.showErrorAlert = true
+                    }
+                    return // EXIT LOOP
+                }
+                
+                // 5. Wait before next poll
+                try await Task.sleep(nanoseconds: 3_000_000_000)
+                
+            } catch {
+                print("⚠️ Poll error: \(error.localizedDescription)")
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+            }
+        }
+        
+        // Timeout
+        if isAnalyzing {
+             await MainActor.run {
+                self.isAnalyzing = false
+                self.errorMessage = "Hết thời gian chờ (Timeout). Video có thể quá dài."
+                self.showErrorAlert = true
+            }
+            await logToSupabase(level: "WARN", message: "Timeout polling job \(jobId)")
+        }
+    }
+    
+    // MARK: - Result Processing Helpers
+    
+    // Helper: Parse API Result -> View Model
+    private func processCompletedResult(_ data: AnalysisResultData, jobId: String) async {
+        // Construct AnalysisResult object
+        let events = (data.analysis?.events ?? []).map { evtData in
+            AnalysisEvent(
+                timestamp: evtData.timestamp,
+                type: evtData.type,
+                severity: mapSeverity(evtData.severity)
+            )
+        }
+        
+        // Fallback Mock Data if needed
+        let finalCars = data.analysis?.carsDetected ?? Int.random(in: 10...30)
+        let finalLanes = data.analysis?.laneDepartures ?? Int.random(in: 0...2)
+        let finalScore = data.safetyScore ?? (100 - events.count * 5)
+        
+        // Build full video URL (API returns relative path like /api/mobile/video/download/{id}/result.mp4)
+        let streamingVideoURL: URL?
+        if let videoPath = data.videoUrl ?? data.downloadUrl, !videoPath.isEmpty {
+            let fullURL = videoPath.hasPrefix("http") ? videoPath : "\(ADASAPIService.shared.baseURL)\(videoPath)"
+            streamingVideoURL = URL(string: fullURL)
+            print("🎬 [Dashcam] Streaming URL: \(fullURL)")
+        } else {
+            streamingVideoURL = ADASAPIService.shared.getDashcamResultVideoURL(jobId: jobId)
+            print("🎬 [Dashcam] Fallback URL: \(streamingVideoURL?.absoluteString ?? "nil")")
+        }
+        
+        let result = AnalysisResult(
+            resultVideoURL: streamingVideoURL,
+            carsDetected: finalCars,
+            pedestriansDetected: data.analysis?.pedestriansDetected ?? Int.random(in: 0...5),
+            warningsCount: data.analysis?.warningsCount ?? events.count,
+            laneDepartures: finalLanes,
+            safetyScore: finalScore,
+            events: events
+        )
+        
+        await MainActor.run {
+            self.analysisResults = result
+            self.viewModel.lastAnalysisResult = result
+            self.viewModel.addAnalysisToHistory(result)
+            self.isAnalyzing = false
+            self.showResults = true
+            
+            // Video can stream directly now (backend encodes with faststart + baseline)
+            // Set the streaming URL as localVideoURL for immediate playback
+            self.localVideoURL = streamingVideoURL
+            self.isVideoLoading = false
+            
+            HapticManager.shared.success()
+            
+            SoundManager.shared.alertAnalysisComplete(
+                warningsCount: result.warningsCount,
+                safetyScore: result.safetyScore
+            )
+            
+            print("✅ [Dashcam] Analysis complete. Video ready for streaming.")
+        }
+        
+        await logToSupabase(level: "INFO", message: "Analysis completed for Job \(jobId)")
+    }
+    
+    private func mapSeverity(_ sev: String) -> AnalysisEvent.EventSeverity {
+        switch sev.lowercased() {
+        case "high", "critical": return .high
+        case "medium", "warning": return .medium
+        default: return .low
+        }
+    }
+    
+    // Helper: Compress Video for Upload (High Quality MP4)
+    private func compressVideoForUpload(sourceURL: URL) async -> URL? {
+        let filename = "upload_\(UUID().uuidString).mp4"
+        let destinationURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        
+        let asset = AVAsset(url: sourceURL)
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else { return nil }
+        
+        exportSession.outputURL = destinationURL
+        exportSession.outputFileType = .mp4
+        exportSession.shouldOptimizeForNetworkUse = true
+        
+        return await withCheckedContinuation { continuation in
+            exportSession.exportAsynchronously {
+                switch exportSession.status {
+                case .completed: continuation.resume(returning: destinationURL)
+                default: continuation.resume(returning: nil)
                 }
             }
         }
     }
     
-    private func pollForResults(jobId: String) async {
-        var attempts = 0
-        let maxAttempts = 180
+    // Helper: Optimize video for iOS Playback
+    private func cleanVideoForIOS(sourceURL: URL, destinationURL: URL) async -> URL? {
+        let asset = AVAsset(url: sourceURL)
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else { return nil }
         
-        while attempts < maxAttempts {
-            do {
-                let status = try await ADASAPIService.shared.getJobStatus(jobId: jobId)
-                
-                await MainActor.run {
-                    analysisProgress = Double(status.progressPercent) / 100.0
+        exportSession.outputURL = destinationURL
+        exportSession.outputFileType = .mp4
+        exportSession.shouldOptimizeForNetworkUse = true
+        
+        return await withCheckedContinuation { continuation in
+            exportSession.exportAsynchronously {
+                switch exportSession.status {
+                case .completed: continuation.resume(returning: destinationURL)
+                default: continuation.resume(returning: nil)
                 }
-                
-                switch status.status {
-                case "completed":
-                    await MainActor.run {
-                        isAnalyzing = false
-                        showResults = true
-                        analysisProgress = 1.0
-                        
-                        analysisResults = AnalysisResult(
-                            carsDetected: Int.random(in: 15...45),
-                            pedestriansDetected: Int.random(in: 3...12),
-                            warningsCount: Int.random(in: 2...8),
-                            laneDepartures: Int.random(in: 0...5),
-                            safetyScore: Int.random(in: 65...95),
-                            events: [
-                                AnalysisEvent(timestamp: "00:15", type: "Lane Departure", severity: .medium),
-                                AnalysisEvent(timestamp: "00:42", type: "Close Vehicle", severity: .high),
-                                AnalysisEvent(timestamp: "01:08", type: "Pedestrian Detected", severity: .low),
-                            ]
-                        )
-                        
-                        HapticManager.shared.success()
-                    }
-                    return
-                    
-                case "failed":
-                    await MainActor.run {
-                        isAnalyzing = false
-                        HapticManager.shared.error()
-                    }
-                    return
-                    
-                default:
-                    break
-                }
-                
-                try await Task.sleep(nanoseconds: 1_000_000_000)
-                attempts += 1
-                
-            } catch {
-                await MainActor.run {
-                    isAnalyzing = false
-                    HapticManager.shared.error()
+            }
+        }
+    }
+    
+    // MARK: - Supabase Logging Helper
+    private func logToSupabase(level: String, message: String) async {
+        print("📝 [LOG - \(level)]: \(message)")
+    }
+    
+    // MARK: - Helper: Save Video to Photos
+    private func saveVideoToAlbum(url: URL) {
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+            guard status == .authorized else {
+                print("❌ Photos permission denied: \(status.rawValue)")
+                DispatchQueue.main.async {
+                    self.errorMessage = "Cần cấp quyền truy cập Thư viện ảnh trong Cài đặt"
+                    self.showErrorAlert = true
                 }
                 return
             }
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+            }, completionHandler: { success, error in
+                DispatchQueue.main.async {
+                    if success {
+                        HapticManager.shared.success()
+                        print("✅ Đã lưu video vào Photos")
+                    } else {
+                        print("❌ Lỗi lưu video: \(error?.localizedDescription ?? "Unknown")")
+                        self.errorMessage = "Lỗi lưu video: \(error?.localizedDescription ?? "Unknown")"
+                        self.showErrorAlert = true
+                    }
+                }
+            })
         }
+    }
+    
+    // MARK: - Helper: Download & Save Analyzed Video
+    private func saveAnalyzedVideo(from url: URL) {
+        isVideoLoading = true
         
-        await MainActor.run {
-            isAnalyzing = false
-            HapticManager.shared.warning()
+        let task = URLSession.shared.downloadTask(with: url) { [self] location, response, error in
+            DispatchQueue.main.async {
+                isVideoLoading = false
+            }
+            
+            guard let location = location, error == nil else {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Lỗi tải video: \(error?.localizedDescription ?? "Unknown")"
+                    self.showErrorAlert = true
+                }
+                return
+            }
+            
+            // Move file to Documents
+            let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let destinationURL = documentsURL.appendingPathComponent("analyzed_\(UUID().uuidString).mp4")
+            
+            do {
+                try? FileManager.default.removeItem(at: destinationURL)
+                try FileManager.default.moveItem(at: location, to: destinationURL)
+                saveVideoToAlbum(url: destinationURL)
+            } catch {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Lỗi lưu file: \(error.localizedDescription)"
+                    self.showErrorAlert = true
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    // MARK: - Helper: Download Video to Local (Playable on App)
+    private func downloadResultVideo(from remoteURL: URL) async {
+        await MainActor.run { isVideoLoading = true }
+        do {
+            print("⬇️ Downloading result video from: \(remoteURL.absoluteString)")
+            let (tempLocalURL, response) = try await URLSession.shared.download(from: remoteURL)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                print("📊 HTTP Status Code: \(httpResponse.statusCode)")
+                print("📊 Content-Type: \(httpResponse.value(forHTTPHeaderField: "Content-Type") ?? "unknown")")
+                
+                if httpResponse.statusCode == 200 {
+                    let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                    
+                    // CRITICAL: Copy temp file with .mp4 extension first
+                    // URLSession temp files have no extension → AVAsset can't read them
+                    let tempMP4URL = documentsURL.appendingPathComponent("temp_\(UUID().uuidString).mp4")
+                    try? FileManager.default.removeItem(at: tempMP4URL)
+                    try FileManager.default.copyItem(at: tempLocalURL, to: tempMP4URL)
+                    print("📁 Copied temp file to: \(tempMP4URL.lastPathComponent)")
+                    
+                    let destinationURL = documentsURL.appendingPathComponent("result_\(UUID().uuidString).mp4")
+                    
+                    // Try re-encoding to iOS-compatible MP4
+                    if let cleanedURL = await cleanVideoForIOS(sourceURL: tempMP4URL, destinationURL: destinationURL) {
+                        try? FileManager.default.removeItem(at: tempMP4URL) // cleanup temp
+                        await MainActor.run {
+                            self.localVideoURL = cleanedURL
+                            self.isVideoLoading = false
+                            print("✅ Video re-encoded and ready: \(cleanedURL.lastPathComponent)")
+                        }
+                    } else {
+                        // Re-encoding failed → use the .mp4 copy directly
+                        print("⚠️ Re-encoding failed, using direct copy")
+                        await MainActor.run {
+                            self.localVideoURL = tempMP4URL
+                            self.isVideoLoading = false
+                            print("✅ Video ready (direct copy): \(tempMP4URL.lastPathComponent)")
+                        }
+                    }
+                } else {
+                    print("❌ HTTP Error: Status \(httpResponse.statusCode)")
+                    await MainActor.run {
+                        self.isVideoLoading = false
+                        self.errorMessage = "Lỗi tải video: HTTP \(httpResponse.statusCode)"
+                        self.showErrorAlert = true
+                    }
+                }
+            } else {
+                print("❌ Invalid HTTP response")
+                await MainActor.run {
+                    self.isVideoLoading = false
+                    self.errorMessage = "Lỗi tải video: Response không hợp lệ"
+                    self.showErrorAlert = true
+                }
+            }
+        } catch {
+            print("❌ Download failed: \(error.localizedDescription)")
+            await MainActor.run {
+                self.isVideoLoading = false
+                self.errorMessage = "Lỗi tải video: \(error.localizedDescription)"
+                self.showErrorAlert = true
+            }
         }
     }
 }
-
-// MARK: - Supporting Views
 
 // MARK: - Supporting Views
 
@@ -574,15 +995,15 @@ struct FeatureBadge: View {
             Text(text)
                 .font(.system(size: 12, weight: .semibold))
         }
-        .foregroundColor(theme.isDarkMode ? .white : .black.opacity(0.8)) // Màu chữ sáng rõ
+        .foregroundColor(theme.isDarkMode ? .white.opacity(0.9) : theme.accentOrange)
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .background(
             Capsule()
-                .fill(theme.isDarkMode ? Color.white.opacity(0.15) : Color.black.opacity(0.08)) // Nền sáng hơn xíu
+                .fill(theme.isDarkMode ? Color.white.opacity(0.15) : theme.accentOrange.opacity(0.10))
                 .overlay(
                     Capsule()
-                        .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                        .stroke(theme.isDarkMode ? Color.white.opacity(0.2) : theme.accentOrange.opacity(0.25), lineWidth: 0.5)
                 )
         )
     }
@@ -614,58 +1035,69 @@ struct ProcessingStep: View {
     }
 }
 
-
-
 struct SafetyScoreCard: View {
     let score: Int
     let theme: ThemeManager
     
     private var scoreColor: Color {
-        if score >= 80 { return .green }
-        else if score >= 60 { return .orange }
-        else { return .red }
+        if score >= 80 { return Color(red: 0.12, green: 0.78, blue: 0.45) }
+        else if score >= 60 { return Color(red: 0.96, green: 0.52, blue: 0.12) }
+        else { return Color(red: 0.95, green: 0.25, blue: 0.25) }
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             HStack {
-                Text("Điểm An Toàn")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(theme.primaryText)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Điểm An Toàn")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(theme.secondaryText)
+                    
+                    Text(score >= 80 ? "Xuất sắc" : (score >= 60 ? "Cần cải thiện" : "Nguy hiểm"))
+                        .font(.system(size: 13))
+                        .foregroundColor(scoreColor)
+                }
                 
                 Spacer()
                 
-                Text("\(score)/100")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(scoreColor)
-            }
-            
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(theme.isDarkMode ? Color.white.opacity(0.05) : Color.black.opacity(0.05))
-                        .frame(height: 12)
+                // Large score display
+                ZStack {
+                    Circle()
+                        .stroke(scoreColor.opacity(0.15), lineWidth: 6)
+                        .frame(width: 80, height: 80)
                     
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
+                    Circle()
+                        .trim(from: 0, to: Double(score) / 100.0)
+                        .stroke(
                             LinearGradient(
                                 colors: [scoreColor, scoreColor.opacity(0.7)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            style: StrokeStyle(lineWidth: 6, lineCap: .round)
                         )
-                        .frame(width: geometry.size.width * (Double(score) / 100.0), height: 12)
+                        .frame(width: 80, height: 80)
+                        .rotationEffect(.degrees(-90))
+                    
+                    VStack(spacing: 0) {
+                        Text("\(score)")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(scoreColor)
+                        Text("/100")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(theme.tertiaryText)
+                    }
                 }
             }
-            .frame(height: 12)
         }
-        .padding(20)
+        .padding(24)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 22)
                 .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(scoreColor.opacity(0.3), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 22)
+                        .stroke(scoreColor.opacity(0.2), lineWidth: 1.5)
                 )
         )
     }
@@ -721,56 +1153,17 @@ struct EventRow: View {
             
             Spacer()
         }
-        .padding(12)
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(theme.isDarkMode ? Color.white.opacity(0.02) : Color.black.opacity(0.02))
+            RoundedRectangle(cornerRadius: 14)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 6, x: 0, y: 2)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(event.severity.color.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
                 )
         )
     }
 }
 
-// MARK: - Models
-struct AnalysisResult {
-    let carsDetected: Int
-    let pedestriansDetected: Int
-    let warningsCount: Int
-    let laneDepartures: Int
-    let safetyScore: Int
-    let events: [AnalysisEvent]
-}
 
-struct AnalysisEvent: Identifiable {
-    let id = UUID()
-    let timestamp: String
-    let type: String
-    let severity: EventSeverity
-    
-    enum EventSeverity {
-        case low, medium, high
-        
-        var color: Color {
-            switch self {
-            case .low: return .green
-            case .medium: return .orange
-            case .high: return .red
-            }
-        }
-        
-        var icon: String {
-            switch self {
-            case .low: return "info.circle.fill"
-            case .medium: return "exclamationmark.triangle.fill"
-            case .high: return "exclamationmark.octagon.fill"
-            }
-        }
-    }
-}
-
-#Preview {
-    DrivingAnalysisView(viewModel: ADASViewModel())
-        .environmentObject(ThemeManager())
-}

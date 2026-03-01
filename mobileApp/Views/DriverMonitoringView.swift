@@ -10,14 +10,12 @@ import PhotosUI
 import AVKit
 
 struct DriverMonitoringView: View {
-    @ObservedObject var viewModel: ADASViewModel
+    var mainViewModel: ADASViewModel? = nil
+    @StateObject private var driverViewModel = DriverMonitoringViewModel()
     @EnvironmentObject var theme: ThemeManager
     @State private var selectedVideo: PhotosPickerItem?
     @State private var videoURL: URL?
-    @State private var isAnalyzing = false
-    @State private var analysisProgress: Double = 0.0
-    @State private var monitoringResults: DriverMonitoringResult?
-    @State private var showResults = false
+    @State private var showAlert = false
     
     var body: some View {
         ZStack {
@@ -38,17 +36,43 @@ struct DriverMonitoringView: View {
                         videoPreviewSection(url: videoURL)
                     }
                     
+                    // Upload Progress
+                    if driverViewModel.isUploading {
+                        uploadProgressSection
+                    }
+                    
                     // Analysis Progress
-                    if isAnalyzing {
+                    if driverViewModel.isProcessing {
                         analysisProgressSection
                     }
                     
                     // Results
-                    if showResults, let results = monitoringResults {
+                    if let results = driverViewModel.monitoringResult {
                         resultsSection(results: results)
                     }
                 }
                 .padding()
+            }
+        }
+        .alert("Lỗi", isPresented: $showAlert) {
+            Button("Đóng", role: .cancel) {
+                driverViewModel.errorMessage = nil
+            }
+        } message: {
+            Text(driverViewModel.errorMessage ?? "Đã xảy ra lỗi")
+        }
+        .onChange(of: driverViewModel.errorMessage) { newValue in
+            if newValue != nil {
+                showAlert = true
+            }
+        }
+        .onChange(of: driverViewModel.monitoringResult) { result in
+            if let result = result {
+                mainViewModel?.addDriverResultToHistory(result)
+            }
+        }        .onChange(of: selectedVideo) { newValue in
+            Task {
+                await loadVideo(from: newValue)
             }
         }
     }
@@ -57,12 +81,12 @@ struct DriverMonitoringView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "eye.fill")
-                    .foregroundColor(Color(red: 0.9, green: 0.4, blue: 0.9))
+                    .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
                     .font(.system(size: 14))
                 
                 Text("GIÁM SÁT TÀI XẾ")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(red: 0.9, green: 0.4, blue: 0.9))
+                    .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
             }
             
             Text("Upload Video Giám Sát")
@@ -83,7 +107,7 @@ struct DriverMonitoringView: View {
                 VStack(spacing: 16) {
                     Image(systemName: videoURL == nil ? "person.crop.circle.badge.plus" : "person.crop.circle.fill")
                         .font(.system(size: 48))
-                        .foregroundColor(Color(red: 0.9, green: 0.4, blue: 0.9))
+                        .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
                     
                     VStack(spacing: 8) {
                         Text(videoURL == nil ? "Chọn Video Tài Xế" : "Đổi Video")
@@ -99,33 +123,36 @@ struct DriverMonitoringView: View {
                 .padding(.vertical, 40)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white.opacity(0.03))
+                        .fill(theme.cardBackground)
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(
-                                    Color(red: 0.9, green: 0.4, blue: 0.9).opacity(0.3),
+                                    Color(red: 0.58, green: 0.35, blue: 0.92).opacity(0.3),
                                     style: StrokeStyle(lineWidth: 2, dash: [10, 5])
                                 )
                         )
+                        .shadow(color: theme.shadowColor, radius: 10, x: 0, y: 4)
                 )
             }
-            .onChange(of: selectedVideo) { newValue in
-                Task {
-                    if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("driver_video.mov")
-                        try? data.write(to: tempURL)
-                        videoURL = tempURL
-                    }
-                }
-            }
+            .disabled(driverViewModel.isUploading || driverViewModel.isProcessing)
             
             if videoURL != nil {
-                Button(action: startAnalysis) {
+                Button(action: {
+                    Task {
+                        await startAnalysis()
+                    }
+                }) {
                     HStack {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 16))
+                        if driverViewModel.isUploading {
+                            ProgressView()
+                                .tint(.white)
+                                .scaleEffect(0.8)
+                        } else {
+                            Image(systemName: "play.fill")
+                                .font(.system(size: 16))
+                        }
                         
-                        Text("BẮT ĐẦU GIÁM SÁT")
+                        Text(driverViewModel.isUploading ? "ĐANG UPLOAD..." : "BẮT ĐẦU GIÁM SÁT")
                             .font(.system(size: 14, weight: .bold))
                     }
                     .foregroundColor(.white)
@@ -134,8 +161,8 @@ struct DriverMonitoringView: View {
                     .background(
                         LinearGradient(
                             colors: [
-                                Color(red: 0.9, green: 0.4, blue: 0.9),
-                                Color(red: 0.8, green: 0.3, blue: 0.8)
+                                Color(red: 0.58, green: 0.35, blue: 0.92),
+                                Color(red: 0.48, green: 0.25, blue: 0.82)
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
@@ -143,7 +170,7 @@ struct DriverMonitoringView: View {
                     )
                     .cornerRadius(10)
                 }
-                .disabled(isAnalyzing)
+                .disabled(driverViewModel.isUploading || driverViewModel.isProcessing)
             }
         }
     }
@@ -159,36 +186,67 @@ struct DriverMonitoringView: View {
                 .cornerRadius(12)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(theme.borderColor, lineWidth: 0.5)
                 )
         }
+    }
+    
+    private var uploadProgressSection: some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 12) {
+                ProgressView()
+                    .tint(Color(red: 0.58, green: 0.35, blue: 0.92))
+                
+                Text("Đang upload video...")
+                    .font(.system(size: 14))
+                    .foregroundColor(theme.primaryText)
+            }
+            
+            ProgressView(value: driverViewModel.uploadProgress)
+                .tint(Color(red: 0.58, green: 0.35, blue: 0.92))
+            
+            Text("\(Int(driverViewModel.uploadProgress * 100))%")
+                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 10, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
+                )
+        )
     }
     
     private var analysisProgressSection: some View {
         VStack(spacing: 16) {
             HStack(spacing: 12) {
                 ProgressView()
-                    .tint(Color(red: 0.9, green: 0.4, blue: 0.9))
+                    .tint(Color(red: 0.58, green: 0.35, blue: 0.92))
                 
-                Text("Đang phân tích hành vi tài xế...")
+                Text(driverViewModel.statusMessage)
                     .font(.system(size: 14))
                     .foregroundColor(theme.primaryText)
             }
             
-            ProgressView(value: analysisProgress)
-                .tint(Color(red: 0.9, green: 0.4, blue: 0.9))
+            ProgressView(value: driverViewModel.processingProgress)
+                .tint(Color(red: 0.58, green: 0.35, blue: 0.92))
             
-            Text("\(Int(analysisProgress * 100))%")
+            Text("\(Int(driverViewModel.processingProgress * 100))%")
                 .font(.system(size: 12, weight: .bold, design: .monospaced))
-                .foregroundColor(Color(red: 0.9, green: 0.4, blue: 0.9))
+                .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
         }
-        .padding()
+        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.03))
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 10, x: 0, y: 4)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
                 )
         )
     }
@@ -199,129 +257,221 @@ struct DriverMonitoringView: View {
                 .font(.system(size: 20, weight: .bold))
                 .foregroundColor(theme.primaryText)
             
-            // Status Overview
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Trạng Thái Tổng Quan")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                    
-                    Text(results.overallStatus)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(statusColor(results.overallStatus))
-                }
-                
-                Spacer()
-                
-                Image(systemName: statusIcon(results.overallStatus))
-                    .font(.system(size: 48))
-                    .foregroundColor(statusColor(results.overallStatus))
+            // Result Video Player - stream directly (faststart + baseline)
+            if let videoURL = results.resultVideoURL {
+                resultVideoSection(url: videoURL)
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.03))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(statusColor(results.overallStatus).opacity(0.3), lineWidth: 1)
-                    )
+            
+            // Safety Score
+            safetyScoreCard(score: results.safetyScore)
+            
+            // Detection Status
+            detectionStatusGrid(
+                fatigueDetected: results.fatigueDetected,
+                distractionDetected: results.distractionDetected
             )
             
-            // Metrics Grid
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                MonitoringMetricCard(
-                    icon: "eye.slash.fill",
-                    label: "Buồn Ngủ",
-                    value: "\(results.drowsinessCount)",
-                    percentage: results.drowsinessPercentage,
-                    color: Color(red: 1.0, green: 0.3, blue: 0.3)
-                )
-                
-                MonitoringMetricCard(
-                    icon: "eye.trianglebadge.exclamationmark.fill",
-                    label: "Mất Tập Trung",
-                    value: "\(results.distractionCount)",
-                    percentage: results.distractionPercentage,
-                    color: Color(red: 1.0, green: 0.8, blue: 0.2)
-                )
-                
-                MonitoringMetricCard(
-                    icon: "phone.fill",
-                    label: "Dùng Điện Thoại",
-                    value: "\(results.phoneUsageCount)",
-                    percentage: results.phoneUsagePercentage,
-                    color: Color(red: 1.0, green: 0.6, blue: 0.2)
-                )
-                
-                MonitoringMetricCard(
-                    icon: "checkmark.circle.fill",
-                    label: "Tập Trung",
-                    value: "\(results.focusedPercentage)%",
-                    percentage: Double(results.focusedPercentage) / 100.0,
-                    color: Color(red: 0.2, green: 0.8, blue: 0.4)
-                )
+            // Processing Info
+            processingInfoCard(
+                duration: results.durationSeconds,
+                processingTime: results.processingTimeSeconds
+            )
+            
+            // Issues Timeline
+            if !results.issues.isEmpty {
+                issuesTimelineSection(issues: results.issues)
             }
             
-            // Attention Score
-            VStack(spacing: 12) {
+            // Reset Button
+            Button(action: resetAnalysis) {
                 HStack {
-                    Text("Điểm Tập Trung")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(theme.primaryText)
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16))
                     
-                    Spacer()
-                    
-                    Text("\(results.attentionScore)/100")
-                        .font(.system(size: 24, weight: .bold, design: .monospaced))
-                        .foregroundColor(scoreColor(results.attentionScore))
+                    Text("PHÂN TÍCH VIDEO MỚI")
+                        .font(.system(size: 14, weight: .bold))
                 }
-                
-                ProgressView(value: Double(results.attentionScore) / 100.0)
-                    .tint(scoreColor(results.attentionScore))
-                
-                Text(scoreDescription(results.attentionScore))
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.03))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.58, green: 0.35, blue: 0.92),
+                            Color(red: 0.48, green: 0.25, blue: 0.82)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
                     )
-            )
+                )
+                .cornerRadius(10)
+            }
+        }
+    }
+    
+    private func resultVideoSection(url: URL) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Video Kết Quả")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(theme.primaryText)
             
-            // Timeline Events
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Dòng Thời Gian Sự Kiện")
+            let player = AVPlayer(url: url)
+            VideoPlayer(player: player)
+                .frame(height: 250)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color(red: 0.58, green: 0.35, blue: 0.92), lineWidth: 1)
+                )
+                .onAppear { player.play() }
+        }
+    }
+    
+    private func safetyScoreCard(score: Int) -> some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text("Điểm An Toàn")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(theme.primaryText)
                 
-                ForEach(results.events) { event in
-                    DriverEventRow(event: event)
-                }
+                Spacer()
+                
+                Text("\(score)/100")
+                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                    .foregroundColor(scoreColor(score))
+            }
+            
+            ProgressView(value: Double(score) / 100.0)
+                .tint(scoreColor(score))
+            
+            HStack {
+                Image(systemName: scoreIcon(score))
+                    .foregroundColor(scoreColor(score))
+                
+                Text(scoreDescription(score))
+                    .font(.system(size: 13))
+                    .foregroundColor(theme.secondaryText)
+                
+                Spacer()
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 8, x: 0, y: 3)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(scoreColor(score).opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+    
+    private func detectionStatusGrid(fatigueDetected: Bool, distractionDetected: Bool) -> some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            DetectionStatusCard(
+                icon: "bed.double.fill",
+                label: "Phát hiện mệt mỏi",
+                detected: fatigueDetected,
+                color: .red
+            )
+            
+            DetectionStatusCard(
+                icon: "eye.slash.fill",
+                label: "Mất tập trung",
+                detected: distractionDetected,
+                color: .orange
+            )
+        }
+    }
+    
+    private func processingInfoCard(duration: Double, processingTime: Double) -> some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Thời lượng video")
+                    .font(.system(size: 12))
+                    .foregroundColor(theme.secondaryText)
+                
+                Text(formatDuration(duration))
+                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .foregroundColor(theme.primaryText)
+            }
+            
+            Spacer()
+            
+            Divider()
+                .frame(height: 40)
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("Thời gian xử lý")
+                    .font(.system(size: 12))
+                    .foregroundColor(theme.secondaryText)
+                
+                Text(formatDuration(processingTime))
+                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .foregroundColor(theme.primaryText)
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 6, x: 0, y: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
+                )
+        )
+    }
+    
+    private func issuesTimelineSection(issues: [DriverIssue]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Dòng Thời Gian Sự Kiện")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(theme.primaryText)
+            
+            ForEach(issues) { issue in
+                DriverIssueRow(issue: issue)
             }
         }
     }
     
-    private func statusColor(_ status: String) -> Color {
-        switch status {
-        case "An Toàn": return Color(red: 0.2, green: 0.8, blue: 0.4)
-        case "Cảnh Báo": return Color(red: 1.0, green: 0.8, blue: 0.2)
-        case "Nguy Hiểm": return Color(red: 1.0, green: 0.3, blue: 0.3)
-        default: return .gray
+    // MARK: - Helper Methods
+    
+    private func loadVideo(from item: PhotosPickerItem?) async {
+        guard let item = item else { return }
+        
+        do {
+            if let data = try await item.loadTransferable(type: Data.self) {
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("driver_video_\(UUID().uuidString).mov")
+                try data.write(to: tempURL)
+                await MainActor.run {
+                    self.videoURL = tempURL
+                }
+            }
+        } catch {
+            await MainActor.run {
+                driverViewModel.errorMessage = "Không thể load video: \(error.localizedDescription)"
+            }
         }
     }
     
-    private func statusIcon(_ status: String) -> String {
-        switch status {
-        case "An Toàn": return "checkmark.shield.fill"
-        case "Cảnh Báo": return "exclamationmark.triangle.fill"
-        case "Nguy Hiểm": return "xmark.shield.fill"
-        default: return "questionmark.circle.fill"
-        }
+    private func startAnalysis() async {
+        guard let videoURL = videoURL else { return }
+        
+        SoundManager.shared.playStartSound()
+        await driverViewModel.uploadDriverVideo(videoURL: videoURL)
+        
+        // Voice alert is automatically played by ViewModel when result is ready
+    }
+    
+    private func resetAnalysis() {
+        driverViewModel.reset()
+        videoURL = nil
+        selectedVideo = nil
     }
     
     private func scoreColor(_ score: Int) -> Color {
@@ -331,6 +481,16 @@ struct DriverMonitoringView: View {
             return Color(red: 1.0, green: 0.8, blue: 0.2)
         } else {
             return Color(red: 1.0, green: 0.3, blue: 0.3)
+        }
+    }
+    
+    private func scoreIcon(_ score: Int) -> String {
+        if score >= 80 {
+            return "checkmark.shield.fill"
+        } else if score >= 60 {
+            return "exclamationmark.triangle.fill"
+        } else {
+            return "xmark.shield.fill"
         }
     }
     
@@ -344,173 +504,117 @@ struct DriverMonitoringView: View {
         }
     }
     
-    private func startAnalysis() {
-        isAnalyzing = true
-        analysisProgress = 0.0
-        showResults = false
-        
-        // Simulate analysis
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            analysisProgress += 0.05
-            
-            if analysisProgress >= 1.0 {
-                timer.invalidate()
-                isAnalyzing = false
-                
-                // Generate mock results
-                let attentionScore = Int.random(in: 60...95)
-                monitoringResults = DriverMonitoringResult(
-                    overallStatus: attentionScore >= 80 ? "An Toàn" : (attentionScore >= 60 ? "Cảnh Báo" : "Nguy Hiểm"),
-                    drowsinessCount: Int.random(in: 0...5),
-                    drowsinessPercentage: Double.random(in: 0...0.15),
-                    distractionCount: Int.random(in: 1...8),
-                    distractionPercentage: Double.random(in: 0.05...0.25),
-                    phoneUsageCount: Int.random(in: 0...3),
-                    phoneUsagePercentage: Double.random(in: 0...0.1),
-                    focusedPercentage: Int.random(in: 70...90),
-                    attentionScore: attentionScore,
-                    events: [
-                        DriverEvent(timestamp: "00:23", type: "Buồn Ngủ", severity: .high, duration: "3s"),
-                        DriverEvent(timestamp: "00:45", type: "Nhìn Sang Bên", severity: .medium, duration: "2s"),
-                        DriverEvent(timestamp: "01:12", type: "Dùng Điện Thoại", severity: .high, duration: "5s"),
-                        DriverEvent(timestamp: "01:38", type: "Mất Tập Trung", severity: .medium, duration: "4s"),
-                        DriverEvent(timestamp: "02:05", type: "Buồn Ngủ", severity: .high, duration: "6s"),
-                    ]
-                )
-                showResults = true
-            }
-        }
+    private func formatDuration(_ seconds: Double) -> String {
+        let minutes = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%02d:%02d", minutes, secs)
     }
 }
 
-struct DriverMonitoringResult {
-    let overallStatus: String
-    let drowsinessCount: Int
-    let drowsinessPercentage: Double
-    let distractionCount: Int
-    let distractionPercentage: Double
-    let phoneUsageCount: Int
-    let phoneUsagePercentage: Double
-    let focusedPercentage: Int
-    let attentionScore: Int
-    let events: [DriverEvent]
-}
+// MARK: - Supporting Views
 
-struct DriverEvent: Identifiable {
-    let id = UUID()
-    let timestamp: String
-    let type: String
-    let severity: EventSeverity
-    let duration: String
-    
-    enum EventSeverity {
-        case low, medium, high
-        
-        var color: Color {
-            switch self {
-            case .low: return Color(red: 0.2, green: 0.8, blue: 0.4)
-            case .medium: return Color(red: 1.0, green: 0.8, blue: 0.2)
-            case .high: return Color(red: 1.0, green: 0.3, blue: 0.3)
-            }
-        }
-        
-        var icon: String {
-            switch self {
-            case .low: return "info.circle.fill"
-            case .medium: return "exclamationmark.triangle.fill"
-            case .high: return "exclamationmark.octagon.fill"
-            }
-        }
-    }
-}
-
-struct MonitoringMetricCard: View {
+struct DetectionStatusCard: View {
     let icon: String
     let label: String
-    let value: String
-    let percentage: Double
+    let detected: Bool
     let color: Color
+    
+    @EnvironmentObject var theme: ThemeManager
     
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 24))
-                .foregroundColor(color)
+                .foregroundColor(detected ? color : theme.secondaryText)
             
-            Text(value)
-                .font(.system(size: 20, weight: .bold, design: .monospaced))
-                .foregroundColor(Color.white)
+            Text(detected ? "Phát hiện" : "Không phát hiện")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(theme.primaryText)
             
             Text(label)
                 .font(.system(size: 11))
-                .foregroundColor(.gray)
-                .lineLimit(1)
-            
-            ProgressView(value: percentage)
-                .tint(color)
-                .scaleEffect(x: 1, y: 0.5)
+                .foregroundColor(theme.secondaryText)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, 18)
+        .padding(.horizontal, 8)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.03))
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 8, x: 0, y: 3)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(color.opacity(0.3), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            detected ? color.opacity(0.3) : theme.cardBorder,
+                            lineWidth: detected ? 1.5 : 0.5
+                        )
                 )
         )
     }
 }
 
-struct DriverEventRow: View {
-    let event: DriverEvent
+struct DriverIssueRow: View {
+    let issue: DriverIssue
+    @EnvironmentObject var theme: ThemeManager
     
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: event.severity.icon)
-                .foregroundColor(event.severity.color)
+            Image(systemName: issue.type.icon)
+                .foregroundColor(issue.severity.color)
                 .font(.system(size: 16))
                 .frame(width: 32, height: 32)
                 .background(
                     Circle()
-                        .fill(event.severity.color.opacity(0.2))
+                        .fill(issue.severity.color.opacity(0.12))
                 )
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(event.type)
+                Text(issue.type.rawValue)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Color.white)
+                    .foregroundColor(theme.primaryText)
                 
-                HStack(spacing: 8) {
-                    Text("⏱ \(event.timestamp)")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(.gray)
-                    
-                    Text("•")
-                        .foregroundColor(.gray)
-                    
-                    Text("⏳ \(event.duration)")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(.gray)
-                }
+                Text("⏱ \(issue.timestamp)")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(theme.secondaryText)
             }
             
             Spacer()
+            
+            // Severity badge
+            Text(severityText(issue.severity))
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(issue.severity.color)
+                )
         }
-        .padding()
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.white.opacity(0.02))
+            RoundedRectangle(cornerRadius: 14)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 6, x: 0, y: 2)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(event.severity.color.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
                 )
         )
+    }
+    
+    private func severityText(_ severity: DriverIssue.IssueSeverity) -> String {
+        switch severity {
+        case .low: return "THẤP"
+        case .medium: return "TRUNG BÌNH"
+        case .high: return "CAO"
+        }
     }
 }
 
 #Preview {
-    DriverMonitoringView(viewModel: ADASViewModel())
+    DriverMonitoringView()
         .environmentObject(ThemeManager())
 }

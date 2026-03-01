@@ -67,21 +67,20 @@ struct StatCard: View {
                 .font(.system(size: 13))
                 .foregroundColor(theme.secondaryText)
         }
-        .padding()
+        .padding(18)
         .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(theme.cardBackground)
-                    .shadow(color: theme.shadowColor, radius: 8, y: 4)
-                
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(color.opacity(0.3), lineWidth: 1)
-            }
+            RoundedRectangle(cornerRadius: 20)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(theme.cardBorder, lineWidth: 0.5)
+                )
         )
-        .scaleEffect(isVisible ? 1 : 0.8)
+        .scaleEffect(isVisible ? 1 : 0.9)
         .opacity(isVisible ? 1 : 0)
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
                 isVisible = true
             }
         }
@@ -104,32 +103,39 @@ struct MiniStatCard: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             if let icon = icon {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundColor(color)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(color.opacity(0.12))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(color)
+                }
             }
             
             Text(value)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundColor(theme.primaryText)
             
             Text(label)
-                .font(.system(size: 11))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(theme.secondaryText)
                 .lineLimit(1)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 18)
+        .padding(.horizontal, 10)
         .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(theme.cardBackground)
-                
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(color.opacity(0.3), lineWidth: 1)
-            }
+            RoundedRectangle(cornerRadius: 18)
+                .fill(theme.cardBackground)
+                .shadow(color: theme.shadowColor, radius: 10, x: 0, y: 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(theme.cardBorder, lineWidth: 1)
+                )
         )
     }
 }
@@ -141,7 +147,7 @@ struct MiniStatCard: View {
             title: "Xe Phát Hiện",
             value: "42",
             color: .blue,
-            trend: "+12%",
+            trend: "+19%",
             trendUp: true
         )
         
@@ -162,6 +168,6 @@ struct MiniStatCard: View {
         }
     }
     .padding()
-    .background(Color(red: 0.05, green: 0.08, blue: 0.15))
+    .background(Color.white)
     .environmentObject(ThemeManager())
 }

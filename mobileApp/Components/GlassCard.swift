@@ -18,14 +18,13 @@ struct GlassCard<Content: View>: View {
     var body: some View {
         content
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(theme.cardBackground)
-                        .shadow(color: theme.shadowColor, radius: 10, y: 5)
-                    
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(theme.cardBorder, lineWidth: 1)
-                }
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(theme.cardBackground)
+                    .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(theme.cardBorder, lineWidth: 0.5)
+                    )
             )
     }
 }
@@ -40,16 +39,15 @@ struct GlassCardWithPadding<Content: View>: View {
     
     var body: some View {
         content
-            .padding()
+            .padding(20)
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(theme.cardBackground)
-                        .shadow(color: theme.shadowColor, radius: 10, y: 5)
-                    
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(theme.cardBorder, lineWidth: 1)
-                }
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(theme.cardBackground)
+                    .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(theme.cardBorder, lineWidth: 0.5)
+                    )
             )
     }
 }
@@ -65,21 +63,20 @@ struct AnimatedGlassCard<Content: View>: View {
     
     var body: some View {
         content
-            .padding()
+            .padding(20)
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(theme.cardBackground)
-                        .shadow(color: theme.shadowColor, radius: 10, y: 5)
-                    
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(theme.cardBorder, lineWidth: 1)
-                }
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(theme.cardBackground)
+                    .shadow(color: theme.shadowColor, radius: 12, x: 0, y: 4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(theme.cardBorder, lineWidth: 0.5)
+                    )
             )
             .opacity(isVisible ? 1 : 0)
-            .offset(y: isVisible ? 0 : 20)
+            .offset(y: isVisible ? 0 : 16)
             .onAppear {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1)) {
                     isVisible = true
                 }
             }

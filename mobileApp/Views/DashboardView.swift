@@ -285,9 +285,9 @@ struct DashboardView: View {
             }
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ForEach(viewModel.features) { feature in
-                    ModernFeatureCard(feature: feature) {
-                        viewModel.toggleFeature(feature)
+                ForEach(viewModel.features.indices, id: \.self) { index in
+                    ModernFeatureCard(feature: viewModel.features[index]) {
+                        viewModel.toggleFeature(at: index)
                     }
                 }
             }
@@ -432,15 +432,7 @@ struct SafetyData: Identifiable {
     let score: Int
 }
 
-let sampleWeeklyData: [SafetyData] = [
-    SafetyData(day: "T2", score: 85),
-    SafetyData(day: "T3", score: 88),
-    SafetyData(day: "T4", score: 92),
-    SafetyData(day: "T5", score: 78),
-    SafetyData(day: "T6", score: 95),
-    SafetyData(day: "T7", score: 89),
-    SafetyData(day: "CN", score: 94)
-]
+let sampleWeeklyData: [SafetyData] = []
 
 #Preview {
     DashboardView(viewModel: ADASViewModel())
