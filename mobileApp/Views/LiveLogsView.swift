@@ -105,10 +105,9 @@ struct LiveLogsView: View {
             }
             
             // Title
-            Text("Live Log\nStreaming")
-                .font(.system(size: 48, weight: .black))
+            Text("Live Log Streaming")
+                .font(.system(size: 36, weight: .black))
                 .foregroundColor(theme.primaryText)
-                .lineSpacing(4)
                 .opacity(animateIn ? 1 : 0)
                 .offset(y: animateIn ? 0 : 20)
         }

@@ -60,7 +60,7 @@ struct UltraPremiumDashboard: View {
              SettingsView(viewModel: viewModel)
         }
         .sheet(isPresented: $showProfile) {
-            ProfileView()
+            ProfileView(viewModel: viewModel)
         }
     }
     
@@ -135,10 +135,9 @@ struct UltraPremiumDashboard: View {
             }
             
             // Main Title
-            Text("Bảng Điều\nKhiển")
-                .font(.system(size: 48, weight: .black))
+            Text("Bảng Điều Khiển")
+                .font(.system(size: 38, weight: .black))
                 .foregroundColor(theme.primaryText)
-                .lineSpacing(4)
                 .opacity(animateIn ? 1 : 0)
                 .offset(y: animateIn ? 0 : 20)
         }
@@ -149,33 +148,11 @@ struct UltraPremiumDashboard: View {
     private var heroPerformanceCard: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Hiệu Suất Hệ Thống")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.85))
-                        .tracking(0.5)
-                    
-                    Text("Thị Giác AI Thời Gian Thực")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.white)
-                }
+                Text("Thị Giác AI Thời Gian Thực")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
                 
                 Spacer()
-                
-                // Version Badge
-                Text("v3.0 PRO")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.white.opacity(0.2))
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
-                            )
-                    )
             }
             
             // Metrics Row

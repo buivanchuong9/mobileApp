@@ -1,10 +1,3 @@
-//
-//  DashboardView.swift
-//  mobileApp
-//
-//  Created by CHUONG on 12/1/26.
-//
-
 import SwiftUI
 import Charts
 

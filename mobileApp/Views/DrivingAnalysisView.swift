@@ -20,7 +20,6 @@ struct DrivingAnalysisView: View {
     @State private var analysisResults: AnalysisResult?
     @State private var showResults = false
     @State private var showVideoPreview = false
-    @State private var logoImage: UIImage? // State cho logo để load async
     @State private var errorMessage: String?
     @State private var showErrorAlert = false
     @State private var localVideoURL: URL?
@@ -74,50 +73,46 @@ struct DrivingAnalysisView: View {
                 dismissButton: .default(Text("Đóng"))
             )
         }
-        .task {
-            // Load logo asynchronous để tránh block main thread gây lag
-            if logoImage == nil {
-                let image = await Task.detached(priority: .userInitiated) { () -> UIImage? in
-                    return UIImage(named: "logo adas")
-                }.value
-                
-                await MainActor.run {
-                    withAnimation {
-                        self.logoImage = image
-                    }
-                }
-            }
-        }
     }
     
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 16) {
-                // Logo Section
-                if let uiImage = logoImage {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 64, height: 64)
-                        .cornerRadius(16)
-                        .shadow(color: theme.shadowColor, radius: 8, x: 0, y: 4)
-                } else {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(
-                                LinearGradient(
-                                    colors: [theme.accentOrange, theme.accentOrange.opacity(0.8)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                // Logo Section - Premium AI Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 1.0, green: 0.55, blue: 0.1),
+                                    Color(red: 0.95, green: 0.35, blue: 0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .frame(width: 64, height: 64)
-                            .shadow(color: theme.accentOrange.opacity(0.3), radius: 8, x: 0, y: 4)
-                        
-                        Image(systemName: "car.fill")
-                            .font(.system(size: 28, weight: .bold))
+                        )
+                        .frame(width: 64, height: 64)
+                        .shadow(color: Color(red: 1.0, green: 0.5, blue: 0.1).opacity(0.45), radius: 12, x: 0, y: 6)
+                    
+                    // Subtle overlay shimmer
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.25), Color.clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 64, height: 64)
+                    
+                    VStack(spacing: 2) {
+                        Image(systemName: "car.2.fill")
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.85))
                     }
                 }
                 

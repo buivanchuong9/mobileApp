@@ -78,25 +78,59 @@ struct DriverMonitoringView: View {
     }
     
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: "eye.fill")
-                    .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
-                    .font(.system(size: 14))
+        HStack(alignment: .top, spacing: 16) {
+            // Premium monitoring icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.58, green: 0.35, blue: 0.92),
+                                Color(red: 0.42, green: 0.2, blue: 0.78)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                    .shadow(color: Color(red: 0.58, green: 0.35, blue: 0.92).opacity(0.4), radius: 10, x: 0, y: 5)
                 
-                Text("GIÁM SÁT TÀI XẾ")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.2), Color.clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                
+                VStack(spacing: 2) {
+                    Image(systemName: "person.crop.circle.badge.checkmark")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                    Image(systemName: "waveform")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.8))
+                }
             }
             
-            Text("Upload Video Giám Sát")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(theme.primaryText)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("GIÁM SÁT TÀI XẼ")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Color(red: 0.58, green: 0.35, blue: 0.92))
+                
+                Text("Upload Video Giám Sát")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(theme.primaryText)
+                
+                Text("Hệ thống AI sẽ phân tích hành vi tài xế, phát hiện buồn ngủ, mất tập trung và đánh giá mức độ an toàn.")
+                    .font(.system(size: 13))
+                    .foregroundColor(theme.secondaryText)
+                    .lineSpacing(3)
+            }
             
-            Text("Hệ thống AI sẽ phân tích hành vi tài xế, phát hiện buồn ngủ, mất tập trung và đánh giá mức độ an toàn.")
-                .font(.system(size: 14))
-                .foregroundColor(theme.secondaryText)
-                .lineSpacing(4)
+            Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
