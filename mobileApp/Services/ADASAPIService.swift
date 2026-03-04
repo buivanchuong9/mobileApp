@@ -69,7 +69,10 @@ class ADASAPIService {
         body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(videoURL.lastPathComponent)\"\r\n".data(using: .utf8)!)
         body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
         body.append(videoData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        // Closing boundary
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         
         // Upload
         let (data, response) = try await session.upload(for: request, from: body)
@@ -166,6 +169,7 @@ class ADASAPIService {
         body.append("Content-Disposition: form-data; name=\"device\"\r\n\r\n".data(using: .utf8)!)
         body.append("\(device)\r\n".data(using: .utf8)!)
         
+        // Closing boundary
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         
         // Upload

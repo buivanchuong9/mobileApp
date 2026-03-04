@@ -45,9 +45,10 @@ class LogStreamViewModel: ObservableObject {
         
         subscriptionTask?.cancel()
         
-        subscriptionTask = Task {
+        subscriptionTask = Task { [weak self] in
+            guard let self = self else { return }
             do {
-                let channel = supabase.channel("public:logs")
+                let channel = self.supabase.channel("public:logs")
                 
                 // Use InsertAction to specifically listen for INSERT events
                 let insertions = channel.postgresChange(
@@ -66,15 +67,17 @@ class LogStreamViewModel: ObservableObject {
                 }
                 
                 // Fetch recent history
-                await fetchRecentLogs()
+                await self.fetchRecentLogs()
                 
                 // Listen for changes using AsyncSequence (Standard Swift Concurrency)
                 for await insert in insertions {
+                    if Task.isCancelled { break }
                     let record = insert.record
                     self.handleRealtimeRecord(record)
                 }
                 
             } catch {
+                if Task.isCancelled { return }
                 await MainActor.run {
                     self.connectionStatus = .error(error.localizedDescription)
                 }
@@ -86,9 +89,10 @@ class LogStreamViewModel: ObservableObject {
         subscriptionTask?.cancel()
         subscriptionTask = nil
         
-        Task {
-            if let channel = realtimeChannel {
-                try? await supabase.removeChannel(channel)
+        Task { [weak self] in
+            guard let self = self else { return }
+            if let channel = self.realtimeChannel {
+                try? await self.supabase.removeChannel(channel)
             }
             await MainActor.run {
                 self.realtimeChannel = nil
