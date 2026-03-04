@@ -14,6 +14,9 @@ struct ProfileView: View {
     var viewModel: ADASViewModel? = nil
     
     @State private var showLogoutAlert = false
+    @State private var showDeleteAccountAlert = false
+    @State private var isDeletingAccount = false
+    @State private var deleteErrorMessage: String? = nil
     
     var body: some View {
         NavigationStack {
@@ -86,6 +89,34 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, 20)
                             
+                            // Delete Account Button
+                            Button(action: {
+                                showDeleteAccountAlert = true
+                            }) {
+                                HStack {
+                                    if isDeletingAccount {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .red))
+                                            .scaleEffect(0.8)
+                                    } else {
+                                        Image(systemName: "trash.fill")
+                                    }
+                                    Text(isDeletingAccount ? "Đang xóa..." : "Xóa tài khoản")
+                                }
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.red.opacity(0.08))
+                                .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                                )
+                            }
+                            .padding(.horizontal, 20)
+                            .disabled(isDeletingAccount)
+                            
                             // Version Info
                             Text("Phiên bản 1.0.1 (Build 20260118)")
                                 .font(.system(size: 12))
@@ -106,6 +137,37 @@ struct ProfileView: View {
                 }
             } message: {
                 Text("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?")
+            }
+            .alert("Xóa tài khoản", isPresented: $showDeleteAccountAlert) {
+                Button("Hủy", role: .cancel) {}
+                Button("Xóa vĩnh viễn", role: .destructive) {
+                    isDeletingAccount = true
+                    Task {
+                        do {
+                            try await authService.deleteAccount()
+                            // Dismiss sheet trước, sau đó ContentView tự chuyển về login
+                            await MainActor.run {
+                                isDeletingAccount = false
+                                presentationMode.wrappedValue.dismiss()
+                            }
+                        } catch {
+                            await MainActor.run {
+                                isDeletingAccount = false
+                                deleteErrorMessage = error.localizedDescription
+                            }
+                        }
+                    }
+                }
+            } message: {
+                Text("⚠️ Hành động này không thể hoàn tác. Toàn bộ dữ liệu tài khoản của bạn sẽ bị xóa vĩnh viễn.")
+            }
+            .alert("Xóa thất bại", isPresented: .init(
+                get: { deleteErrorMessage != nil },
+                set: { if !$0 { deleteErrorMessage = nil } }
+            )) {
+                Button("OK", role: .cancel) { deleteErrorMessage = nil }
+            } message: {
+                Text(deleteErrorMessage ?? "")
             }
         }
     }

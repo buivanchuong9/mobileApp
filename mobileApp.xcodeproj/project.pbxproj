@@ -13,7 +13,6 @@
 		6931FD992F1CB2A700040DC6 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD982F1CB2A700040DC6 /* Realtime */; };
 		6931FD9B2F1CB2A700040DC6 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD9A2F1CB2A700040DC6 /* Storage */; };
 		6931FD9D2F1CB2A700040DC6 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 6931FD9C2F1CB2A700040DC6 /* Supabase */; };
-		69D6B4572F324E5900E550DD /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 69D6B4562F324E5900E550DD /* GoogleMobileAds */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,7 +80,6 @@
 				6931FD932F1CB2A700040DC6 /* Auth in Frameworks */,
 				6931FD9B2F1CB2A700040DC6 /* Storage in Frameworks */,
 				6931FD992F1CB2A700040DC6 /* Realtime in Frameworks */,
-				69D6B4572F324E5900E550DD /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,7 +154,6 @@
 				6931FD982F1CB2A700040DC6 /* Realtime */,
 				6931FD9A2F1CB2A700040DC6 /* Storage */,
 				6931FD9C2F1CB2A700040DC6 /* Supabase */,
-				69D6B4562F324E5900E550DD /* GoogleMobileAds */,
 			);
 			productName = mobileApp;
 			productReference = 691AF6BB2F15293000A943A4 /* mobileApp.app */;
@@ -242,7 +239,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */,
-				69D6B4552F324E5900E550DD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				692A01C12F57FFBE00BE3A6A /* XCRemoteSwiftPackageReference "swifty-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 691AF6BC2F15293000A943A4 /* Products */;
@@ -461,6 +458,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -498,6 +496,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -625,20 +624,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		692A01C12F57FFBE00BE3A6A /* XCRemoteSwiftPackageReference "swifty-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/crashoverride777/swifty-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.5.1;
-			};
-		};
-		69D6B4552F324E5900E550DD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.14.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -673,11 +672,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Supabase;
-		};
-		69D6B4562F324E5900E550DD /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 69D6B4552F324E5900E550DD /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

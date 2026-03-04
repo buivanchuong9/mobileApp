@@ -15,6 +15,8 @@ enum AuthError: LocalizedError {
     case userNotFound
     case emailAlreadyExists
     case weakPassword
+    case sessionNotFound
+    case deleteFailed(String)
     case unknown(String)
     
     var errorDescription: String? {
@@ -29,6 +31,10 @@ enum AuthError: LocalizedError {
             return "Email đã được sử dụng"
         case .weakPassword:
             return "Mật khẩu phải có ít nhất 6 ký tự"
+        case .sessionNotFound:
+            return "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại"
+        case .deleteFailed(let msg):
+            return "Xóa tài khoản thất bại: \(msg)"
         case .unknown(let message):
             return message
         }
@@ -119,6 +125,44 @@ class AuthService: ObservableObject {
         } catch {
             throw mapError(error)
         }
+    }
+    
+    // MARK: - Delete Account
+    
+    func deleteAccount() async throws {
+        // 1. Lấy Supabase JWT token từ session hiện tại
+        guard let token = try? await supabase.auth.session.accessToken, !token.isEmpty else {
+            throw AuthError.sessionNotFound
+        }
+        
+        // 2. Gọi API: DELETE /api/auth/account
+        let url = URL(string: "https://adas-api.aiotlab.edu.vn/api/auth/account")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.networkError
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            let msg = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw AuthError.deleteFailed("HTTP \(httpResponse.statusCode): \(msg)")
+        }
+        
+        // 3. Đăng xuất local sau khi xóa thành công
+        try? await supabase.auth.signOut()
+        
+        await MainActor.run {
+            self.currentUser = nil
+            self.isAuthenticated = false
+            self.accessToken = nil
+        }
+        
+        // 4. Xóa credentials khỏi Keychain
+        keychainService.deleteToken()
     }
     
     // MARK: - Refresh Token
