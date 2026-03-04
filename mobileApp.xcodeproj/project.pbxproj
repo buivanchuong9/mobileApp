@@ -239,7 +239,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */,
-				692A01C12F57FFBE00BE3A6A /* XCRemoteSwiftPackageReference "swifty-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 691AF6BC2F15293000A943A4 /* Products */;
@@ -624,14 +623,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		692A01C12F57FFBE00BE3A6A /* XCRemoteSwiftPackageReference "swifty-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/crashoverride777/swifty-ads.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
 		6931FD902F1CB29200040DC6 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
