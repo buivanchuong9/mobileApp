@@ -112,7 +112,7 @@ struct ProfileView: View {
                             
                             // Delete Account Button
                             Button(action: {
-                                hapticFeedback(.warning)
+                                hapticFeedback(.heavy)
                                 activeAlert = .deleteConfirmation
                             }) {
                                 HStack {
@@ -149,11 +149,10 @@ struct ProfileView: View {
                     }
                 }
             }
-            }
             .alert(item: $activeAlert) { alertType in
                 switch alertType {
                 case .logout:
-                    return Alert(
+                    return SwiftUI.Alert(
                         title: Text("Đăng xuất"),
                         message: Text("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?"),
                         primaryButton: .destructive(Text("Đăng xuất")) {
@@ -165,7 +164,7 @@ struct ProfileView: View {
                         secondaryButton: .cancel(Text("Hủy"))
                     )
                 case .deleteConfirmation:
-                    return Alert(
+                    return SwiftUI.Alert(
                         title: Text("Xóa tài khoản"),
                         message: Text("⚠️ Hành động này không thể hoàn tác. Toàn bộ dữ liệu tài khoản của bạn sẽ bị xóa vĩnh viễn."),
                         primaryButton: .destructive(Text("Xóa vĩnh viễn")) {
@@ -174,7 +173,7 @@ struct ProfileView: View {
                         secondaryButton: .cancel(Text("Hủy"))
                     )
                 case .error(let message):
-                    return Alert(
+                    return SwiftUI.Alert(
                         title: Text("Lỗi"),
                         message: Text(message),
                         dismissButton: .default(Text("OK"))

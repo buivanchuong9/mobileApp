@@ -74,7 +74,7 @@ struct LogEntry: Identifiable, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
         // 1. Decode ID (Handle Int, String, or UUID)
-        if let intID = try? container.decode(Int64.self, forKey: .id) {
+        if let _ = try? container.decode(Int64.self, forKey: .id) {
             // Convert Int ID to UUID deterministically or use random
             self.id = UUID() // Use random for UI uniqueness if Int is used
         } else if let strID = try? container.decode(String.self, forKey: .id), let uuid = UUID(uuidString: strID) {
