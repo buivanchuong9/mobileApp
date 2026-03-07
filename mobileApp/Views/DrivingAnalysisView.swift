@@ -25,6 +25,7 @@ struct DrivingAnalysisView: View {
     @State private var localVideoURL: URL?
     @State private var isVideoLoading = false
     @State private var statusMessage: String = "Đang Phân Tích Video..."
+    @State private var showAIConsentAlert = false
     
     var body: some View {
         ZStack {
@@ -66,6 +67,14 @@ struct DrivingAnalysisView: View {
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: videoURL)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isAnalyzing)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showResults)
+        .alert("Thông báo sử dụng AI", isPresented: $showAIConsentAlert) {
+            Button("Hủy", role: .cancel) {}
+            Button("Đồng ý & Tiếp tục") {
+                startAnalysis()
+            }
+        } message: {
+            Text("Video của bạn sẽ được gửi đến hệ thống AI (adas-api.aiotlab.edu.vn) để phân tích hành vi lái xe. Chúng tôi cam kết bảo mật dữ liệu của bạn.")
+        }
         .alert(isPresented: $showErrorAlert) {
             SwiftUI.Alert(
                 title: Text("Lỗi"),
@@ -224,7 +233,7 @@ struct DrivingAnalysisView: View {
             .disabled(isAnalyzing)
             
             if videoURL != nil && !isAnalyzing {
-                Button(action: startAnalysis) {
+                Button(action: { showAIConsentAlert = true }) {
                     HStack(spacing: 12) {
                         Image(systemName: "play.fill")
                             .font(.system(size: 16, weight: .bold))

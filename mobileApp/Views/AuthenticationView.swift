@@ -54,6 +54,7 @@ struct AuthenticationView: View {
     @State private var showPassword = false
     @State private var showConfirmPassword = false
     @State private var passwordStrength: CleanPasswordStrength = .none
+    @State private var showPrivacyPolicy = false
     
     var body: some View {
         ZStack {
@@ -277,24 +278,35 @@ struct AuthenticationView: View {
             }
             
             // Toggle login/register
-            HStack(spacing: 6) {
-                Text(isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?")
-                    .font(.system(size: 15))
-                    .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.5))
+            VStack(spacing: 12) {
+                HStack(spacing: 6) {
+                    Text(isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?")
+                        .font(.system(size: 15))
+                        .foregroundColor(Color(red: 0.4, green: 0.4, blue: 0.5))
+                    
+                    Button(action: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            isLogin.toggle()
+                            email = ""
+                            password = ""
+                            confirmPassword = ""
+                            fullName = ""
+                            passwordStrength = .none
+                        }
+                    }) {
+                        Text(isLogin ? "Đăng ký ngay" : "Đăng nhập")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(Color(red: 1.0, green: 0.6, blue: 0.2))
+                    }
+                }
                 
                 Button(action: {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        isLogin.toggle()
-                        email = ""
-                        password = ""
-                        confirmPassword = ""
-                        fullName = ""
-                        passwordStrength = .none
-                    }
+                    showPrivacyPolicy = true
                 }) {
-                    Text(isLogin ? "Đăng ký ngay" : "Đăng nhập")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Color(red: 1.0, green: 0.6, blue: 0.2))
+                    Text("Bằng việc tiếp tục, bạn đồng ý với Chính sách bảo mật")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.65))
+                        .underline()
                 }
             }
             .padding(.top, 8)
@@ -329,6 +341,10 @@ struct AuthenticationView: View {
                     .fill(Color.white)
                     .shadow(color: Color.black.opacity(0.15), radius: 30)
             )
+        }
+        .sheet(isPresented: $showPrivacyPolicy) {
+            PrivacyPolicyView()
+                .environmentObject(ThemeManager()) // Standalone or from env
         }
     }
     

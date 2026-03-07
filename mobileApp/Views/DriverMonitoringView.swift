@@ -16,6 +16,7 @@ struct DriverMonitoringView: View {
     @State private var selectedVideo: PhotosPickerItem?
     @State private var videoURL: URL?
     @State private var showAlert = false
+    @State private var showAIConsentAlert = false
     
     var body: some View {
         ZStack {
@@ -60,6 +61,16 @@ struct DriverMonitoringView: View {
             }
         } message: {
             Text(driverViewModel.errorMessage ?? "Đã xảy ra lỗi")
+        }
+        .alert("Thông báo sử dụng AI", isPresented: $showAIConsentAlert) {
+            Button("Hủy", role: .cancel) {}
+            Button("Đồng ý & Tiếp tục") {
+                Task {
+                    await startAnalysis()
+                }
+            }
+        } message: {
+            Text("Video của bạn sẽ được gửi đến hệ thống AI (adas-api.aiotlab.edu.vn) để giám sát hành vi tài xế. Chúng tôi cam kết bảo mật dữ liệu của bạn.")
         }
         .onChange(of: driverViewModel.errorMessage) { newValue in
             if newValue != nil {
@@ -172,9 +183,7 @@ struct DriverMonitoringView: View {
             
             if videoURL != nil {
                 Button(action: {
-                    Task {
-                        await startAnalysis()
-                    }
+                    showAIConsentAlert = true
                 }) {
                     HStack {
                         if driverViewModel.isUploading {

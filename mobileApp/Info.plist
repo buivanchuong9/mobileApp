@@ -2,21 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>GADApplicationIdentifier</key>
-    <string>ca-app-pub-4587554780506701~5617077460</string>
-    <key>NSUserTrackingUsageDescription</key>
-    <string>Dữ liệu này giúp hiển thị quảng cáo phù hợp và hỗ trợ chúng tôi duy trì ứng dụng miễn phí.</string>
-    <key>SKAdNetworkItems</key>
-    <array>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>cstr6suwn9.skadnetwork</string>
-        </dict>
-    </array>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Ứng dụng cần quyền truy cập Thư viện ảnh để lưu video kết quả phân tích ADAS.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Ứng dụng cần quyền truy cập Thư viện ảnh để chọn và lưu video.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Ứng dụng cần quyền truy cập Camera để quay video phân tích lái xe và giám sát tài xế trực tiếp.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Ứng dụng sử dụng Face ID để bảo mật tài khoản và xác thực người dùng nhanh chóng.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Ứng dụng cần quyền truy cập Micro để ghi âm âm thanh trong video khi bạn quay video trực tiếp.</string>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>

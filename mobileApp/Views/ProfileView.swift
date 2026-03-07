@@ -13,10 +13,24 @@ struct ProfileView: View {
     @Environment(\.presentationMode) var presentationMode
     var viewModel: ADASViewModel? = nil
     
-    @State private var showLogoutAlert = false
-    @State private var showDeleteAccountAlert = false
     @State private var isDeletingAccount = false
-    @State private var deleteErrorMessage: String? = nil
+    @State private var showPrivacyPolicy = false
+    
+    // Consolidated Alert System
+    enum ProfileAlert: Identifiable {
+        case logout
+        case deleteConfirmation
+        case error(String)
+        
+        var id: String {
+            switch self {
+            case .logout: return "logout"
+            case .deleteConfirmation: return "delete"
+            case .error(let msg): return msg
+            }
+        }
+    }
+    @State private var activeAlert: ProfileAlert?
     
     var body: some View {
         NavigationStack {
@@ -69,12 +83,19 @@ struct ProfileView: View {
                                 NavigationLink(destination: AppSettingsSubView()) {
                                     MenuRow(icon: "gearshape", title: "Cài đặt ứng dụng", theme: theme)
                                 }
+                                
+                                Button(action: {
+                                    showPrivacyPolicy = true
+                                }) {
+                                    MenuRow(icon: "doc.text.shield", title: "Chính sách bảo mật", theme: theme)
+                                }
                             }
                             .padding(20)
                             
                             // Logout Button
                             Button(action: {
-                                showLogoutAlert = true
+                                hapticFeedback(.medium)
+                                activeAlert = .logout
                             }) {
                                 HStack {
                                     Image(systemName: "rectangle.portrait.and.arrow.right")
@@ -91,7 +112,8 @@ struct ProfileView: View {
                             
                             // Delete Account Button
                             Button(action: {
-                                showDeleteAccountAlert = true
+                                hapticFeedback(.warning)
+                                activeAlert = .deleteConfirmation
                             }) {
                                 HStack {
                                     if isDeletingAccount {
@@ -127,47 +149,64 @@ struct ProfileView: View {
                     }
                 }
             }
-            .alert("Đăng xuất", isPresented: $showLogoutAlert) {
-                Button("Hủy", role: .cancel) {}
-                Button("Đăng xuất", role: .destructive) {
-                    Task {
-                        try? await authService.signOut()
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                }
-            } message: {
-                Text("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?")
             }
-            .alert("Xóa tài khoản", isPresented: $showDeleteAccountAlert) {
-                Button("Hủy", role: .cancel) {}
-                Button("Xóa vĩnh viễn", role: .destructive) {
-                    isDeletingAccount = true
-                    Task {
-                        do {
-                            try await authService.deleteAccount()
-                            // Dismiss sheet trước, sau đó ContentView tự chuyển về login
-                            await MainActor.run {
-                                isDeletingAccount = false
+            .alert(item: $activeAlert) { alertType in
+                switch alertType {
+                case .logout:
+                    return Alert(
+                        title: Text("Đăng xuất"),
+                        message: Text("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản?"),
+                        primaryButton: .destructive(Text("Đăng xuất")) {
+                            Task {
+                                try? await authService.signOut()
                                 presentationMode.wrappedValue.dismiss()
                             }
-                        } catch {
-                            await MainActor.run {
-                                isDeletingAccount = false
-                                deleteErrorMessage = error.localizedDescription
-                            }
-                        }
-                    }
+                        },
+                        secondaryButton: .cancel(Text("Hủy"))
+                    )
+                case .deleteConfirmation:
+                    return Alert(
+                        title: Text("Xóa tài khoản"),
+                        message: Text("⚠️ Hành động này không thể hoàn tác. Toàn bộ dữ liệu tài khoản của bạn sẽ bị xóa vĩnh viễn."),
+                        primaryButton: .destructive(Text("Xóa vĩnh viễn")) {
+                            performDeleteAccount()
+                        },
+                        secondaryButton: .cancel(Text("Hủy"))
+                    )
+                case .error(let message):
+                    return Alert(
+                        title: Text("Lỗi"),
+                        message: Text(message),
+                        dismissButton: .default(Text("OK"))
+                    )
                 }
-            } message: {
-                Text("⚠️ Hành động này không thể hoàn tác. Toàn bộ dữ liệu tài khoản của bạn sẽ bị xóa vĩnh viễn.")
             }
-            .alert("Xóa thất bại", isPresented: .init(
-                get: { deleteErrorMessage != nil },
-                set: { if !$0 { deleteErrorMessage = nil } }
-            )) {
-                Button("OK", role: .cancel) { deleteErrorMessage = nil }
-            } message: {
-                Text(deleteErrorMessage ?? "")
+            .sheet(isPresented: $showPrivacyPolicy) {
+                PrivacyPolicyView()
+                    .environmentObject(theme)
+            }
+        }
+    }
+    
+    private func hapticFeedback(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.impactOccurred()
+    }
+    
+    private func performDeleteAccount() {
+        isDeletingAccount = true
+        Task {
+            do {
+                try await authService.deleteAccount()
+                await MainActor.run {
+                    isDeletingAccount = false
+                    presentationMode.wrappedValue.dismiss()
+                }
+            } catch {
+                await MainActor.run {
+                    isDeletingAccount = false
+                    activeAlert = .error(error.localizedDescription)
+                }
             }
         }
     }
