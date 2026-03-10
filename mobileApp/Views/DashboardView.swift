@@ -259,12 +259,14 @@ struct DashboardView: View {
                     .foregroundColor(theme.secondaryText)
                     .frame(width: 56, height: 64)
                     .background(theme.cardBackground)
+                    .contentShape(Rectangle()) // Ensure entire area is tappable
                     .cornerRadius(16)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(theme.cardBorder, lineWidth: 1)
                     )
             }
+            .buttonStyle(PlainButtonStyle())
         }
     }
     

@@ -50,8 +50,25 @@ class AuthService: ObservableObject {
     private let keychainService = KeychainService.shared
     
     init() {
+        // Check if this is a fresh install
+        checkFirstLaunch()
+        
         // Check for existing session
         loadSavedSession()
+    }
+    
+    private func checkFirstLaunch() {
+        let hasLaunchedBefore = UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
+        if !hasLaunchedBefore {
+            // This is a fresh install (or first time after update that adds this logic)
+            // Keychain survives app deletion, so we must manually clear it
+            keychainService.deleteToken()
+            
+            // Mark as launched
+            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            UserDefaults.standard.synchronize()
+            print("🆕 Fresh install detected. Keychain cleared.")
+        }
     }
     
     // MARK: - Sign Up

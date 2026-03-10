@@ -322,12 +322,14 @@ struct LiveLogsView: View {
                         .foregroundColor(theme.primaryText)
                         .frame(width: 50, height: 50)
                         .background(theme.cardBackground)
+                        .contentShape(Circle()) // Precise hit area for circle
                         .clipShape(Circle())
                         .overlay(
                             Circle()
                                 .stroke(theme.cardBorder, lineWidth: 1)
                         )
                 }
+                .buttonStyle(PlainButtonStyle())
             }
             
             // Secondary buttons

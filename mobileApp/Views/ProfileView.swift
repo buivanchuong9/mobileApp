@@ -38,25 +38,6 @@ struct ProfileView: View {
                 theme.backgroundColor.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // Header
-                    HStack {
-                        Text("Hồ sơ cá nhân")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(theme.primaryText)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 28))
-                                .foregroundColor(theme.secondaryText)
-                        }
-                    }
-                    .padding(20)
-                    .background(theme.backgroundColor) // Ensure background for scrolling
-                    
                     ScrollView {
                         VStack(spacing: 24) {
                             // User Info Card
@@ -130,12 +111,14 @@ struct ProfileView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.red.opacity(0.08))
+                                .contentShape(Rectangle()) // Ensure entire area is tappable
                                 .cornerRadius(12)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(Color.red.opacity(0.3), lineWidth: 1)
                                 )
                             }
+                            .buttonStyle(PlainButtonStyle()) // Avoid list-style effects if any
                             .padding(.horizontal, 20)
                             .disabled(isDeletingAccount)
                             
@@ -146,6 +129,19 @@ struct ProfileView: View {
                                 .padding(.top, 20)
                         }
                         .padding(.bottom, 40)
+                    }
+                }
+            }
+            .navigationTitle("Hồ sơ cá nhân")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(theme.secondaryText)
                     }
                 }
             }

@@ -164,7 +164,7 @@ struct AuthenticationView: View {
                     icon: "lock.fill",
                     placeholder: "Mật khẩu",
                     text: $password,
-                    isSecure: !showPassword,
+                    isSecure: true,
                     showPassword: $showPassword
                 )
                 .onChange(of: password) { newValue in
@@ -183,7 +183,7 @@ struct AuthenticationView: View {
                     icon: "lock.fill",
                     placeholder: "Xác nhận mật khẩu",
                     text: $confirmPassword,
-                    isSecure: !showConfirmPassword,
+                    isSecure: true,
                     showPassword: $showConfirmPassword
                 )
                 
@@ -499,11 +499,23 @@ struct CleanTextField: View {
             }
             
             if isSecure {
-                Button(action: { showPassword.toggle() }) {
-                    Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Color(red: 0.6, green: 0.6, blue: 0.65))
-                }
+                Image(systemName: showPassword ? "eye.slash.fill" : "eye.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(isFocused ? Color(red: 1.0, green: 0.6, blue: 0.2) : Color(red: 0.6, green: 0.6, blue: 0.65))
+                    .frame(width: 44, height: 44) // Constant size for reliable layout
+                    .contentShape(Rectangle()) // Robust hit area
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in
+                                if !showPassword {
+                                    showPassword = true
+                                    HapticManager.shared.impact(style: .light)
+                                }
+                            }
+                            .onEnded { _ in
+                                showPassword = false
+                            }
+                    )
             }
         }
         .padding(.horizontal, 18)

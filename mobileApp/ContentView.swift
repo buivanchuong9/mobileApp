@@ -90,6 +90,8 @@ struct ContentView: View {
             
         case .active:
             // App hiện lại -> Kiểm tra thời gian
+            PermissionManager.shared.requestAllPermissions()
+            
             if let lastDate = lastBackgroundDate {
                 let timeDiff = Date().timeIntervalSince(lastDate)
                 print("⏳ App in background for: \(timeDiff) seconds")

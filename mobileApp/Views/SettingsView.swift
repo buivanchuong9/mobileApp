@@ -15,17 +15,17 @@ struct SettingsView: View {
     @State private var enableHapticFeedback = true
     @State private var autoStartMonitoring = false
     
+    @Environment(\.presentationMode) var presentationMode
+
     var body: some View {
-        ZStack {
+        NavigationStack {
+            ZStack {
             // Background with theme
             theme.backgroundColor
                 .ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 20) {
-                    // Header with theme toggle
-                    headerSection
-                    
                     // Theme Settings
                     themeSection
                     
@@ -43,9 +43,23 @@ struct SettingsView: View {
                 }
                 .padding()
             }
+            .navigationTitle("Cài đặt")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(theme.secondaryText)
+                    }
+                }
+            }
         }
     }
-    
+}
+
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {

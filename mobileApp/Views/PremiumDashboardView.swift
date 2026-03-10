@@ -528,12 +528,14 @@ struct PremiumDashboardView: View {
                     }
                     .frame(width: 80, height: 80)
                     .background(.ultraThinMaterial)
+                    .contentShape(Rectangle()) // Robust hit area for iPad
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
                             .stroke(theme.cardBorder, lineWidth: 1)
                     )
                 }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }
