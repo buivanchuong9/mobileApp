@@ -3,84 +3,14 @@
 <plist version="1.0">
 <dict>
     <key>NSPhotoLibraryAddUsageDescription</key>
-    <string>Ứng dụng cần quyền truy cập Thư viện ảnh để lưu video kết quả phân tích ADAS.</string>
+    <string>Ứng dụng cần quyền thêm ảnh để lưu video kết quả sau khi AI phân tích hành vi lái xe vào thư viện của bạn.</string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>Ứng dụng cần quyền truy cập Thư viện ảnh để chọn và lưu video.</string>
+    <string>Ứng dụng cần truy cập thư viện ảnh để bạn có thể chọn video hành trình (dashcam) để phân tích AI.</string>
     <key>NSCameraUsageDescription</key>
-    <string>Ứng dụng cần quyền truy cập Camera để quay video phân tích lái xe và giám sát tài xế trực tiếp.</string>
+    <string>Ứng dụng cần Camera để quay video phân tích lái xe (ADAS) và giám sát trạng thái tài xế (mệt mỏi, mất tập trung) theo thời gian thực.</string>
     <key>NSFaceIDUsageDescription</key>
-    <string>Ứng dụng sử dụng Face ID để bảo mật tài khoản và xác thực người dùng nhanh chóng.</string>
+    <string>Ứng dụng sử dụng Face ID để bảo mật tài khoản và xác thực người dùng khi mở ứng dụng.</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Ứng dụng cần quyền truy cập Micro để ghi âm âm thanh trong video khi bạn quay video trực tiếp.</string>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Ứng dụng cần quyền truy cập vị trí để ghi lại tốc độ và lộ trình lái xe trong quá trình phân tích ADAS.</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Ứng dụng cần quyền truy cập vị trí ngay cả khi chạy ngầm để đảm bảo tính năng giám sát hành trình không bị gián đoạn.</string>
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-    </dict>
-    <key>NSUserTrackingUsageDescription</key>
-    <string>Ứng dụng cần quyền theo dõi hoạt động để cung cấp quảng cáo cá nhân hóa và cải thiện trải nghiệm người dùng.</string>
-    <key>SKAdNetworkItems</key>
-    <array>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>cstr6suwn9.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>4fzdc2evr5.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>2fnua5tdw4.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>ydx93a7ass.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>5a6flpkh64.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>p78axxw29g.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>v72qych5uu.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>ludvb6z3bs.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>cp8zw746q7.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>3sh42y64q3.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>c6k4g5qg8m.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>s39g8k73mm.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>3qy4746246.skadnetwork</string>
-        </dict>
-        <dict>
-            <key>SKAdNetworkIdentifier</key>
-            <string>3rd42ekr43.skadnetwork</string>
-        </dict>
-    </array>
+    <string>Ứng dụng cần Micro để ghi lại âm thanh cảnh báo và âm thanh môi trường khi bạn thực hiện quay video giám sát hành trình.</string>
 </dict>
 </plist>

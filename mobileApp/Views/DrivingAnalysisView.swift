@@ -584,10 +584,14 @@ struct DrivingAnalysisView: View {
         
         isAnalyzing = true
         analysisProgress = 0.0
-        showResults = false
         statusMessage = "Đang chuẩn bị..."
         SoundManager.shared.playStartSound()
         
+        // Removed location permission request as it's no longer needed
+        self.proceedWithAnalysis(videoURL: videoURL)
+    }
+
+    private func proceedWithAnalysis(videoURL: URL) {
         Task {
             var uploadProgressTask: Task<Void, Never>? = nil
             

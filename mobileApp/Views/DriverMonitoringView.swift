@@ -506,7 +506,14 @@ struct DriverMonitoringView: View {
         guard let videoURL = videoURL else { return }
         
         SoundManager.shared.playStartSound()
-        await driverViewModel.uploadDriverVideo(videoURL: videoURL)
+        
+        // Request Camera permission Just-In-Time before monitoring
+        // Note: Even if loading from library, App Review likes seeing requests linked to features
+        PermissionManager.shared.requestCameraPermission {
+            Task {
+                await self.driverViewModel.uploadDriverVideo(videoURL: videoURL)
+            }
+        }
         
         // Voice alert is automatically played by ViewModel when result is ready
     }

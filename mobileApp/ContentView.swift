@@ -90,7 +90,8 @@ struct ContentView: View {
             
         case .active:
             // App hiện lại -> Kiểm tra thời gian
-            PermissionManager.shared.requestAllPermissions()
+            // Removed automatic permission request to comply with App Review
+            // PermissionManager.shared.requestAllPermissions()
             
             if let lastDate = lastBackgroundDate {
                 let timeDiff = Date().timeIntervalSince(lastDate)
